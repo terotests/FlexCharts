@@ -109,7 +109,7 @@ describe("Time Utilities", () => {
       const quarter2 = parseTimeString("03/2021", "QQ/YYYY");
 
       const diffInQuarters = getTimeDifferenceInUnit(quarter1, quarter2, "Y");
-      expect(diffInQuarters).toBe(0.5); // 2 quarters difference
+      expect(diffInQuarters).toBe(0.5); // 0.5 quarters difference
 
       const diffInQuarters2 = getTimeDifferenceInUnit(quarter1, quarter2, "Q");
       expect(diffInQuarters2).toBe(2); //  2 quarters difference
