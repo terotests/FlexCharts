@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseTimeString, type TTimeInterval } from "../time";
+import { parseTimeString } from "../time";
 
 describe("defaultTimeParserKernel", () => {
   describe("Date formats", () => {

@@ -67,10 +67,12 @@ main {
 }
 
 .chart-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  flex: 1;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1rem;
 }
+
 
 .code-example {
   border-radius: 8px;

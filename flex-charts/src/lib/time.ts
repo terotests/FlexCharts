@@ -63,6 +63,9 @@ const defaultTimeParserKernel: TTimeParserKernel = {
     // 2025/1
     "YYYY/M",
 
+    // 2025
+    "YYYY",
+
     // 2025/01
     "M/YYYY",
 
@@ -152,15 +155,19 @@ export interface TTimeSpan {
   end: TTimeInterval;
 }
 
+function createInteval(value: number, type: TTimeIntervalType): TTimeInterval {
+  return { type, value };
+}
+
 function isLeapYear(year: number): boolean {
   return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 }
 
 function getSecondsAtStartOfYear(year: number): number {
   // Calculate the number of seconds from the start of the year to the given date
-  const zeroYear = new Date(0, 0, 1, 0, 0, 0);
-  const zeroSeconds = Math.floor(zeroYear.getTime() / 1000);
-  const startOfYear = new Date(year, 0, 1, 0, 0, 0);
+  const zeroYear = Date.UTC(0, 0, 1, 0, 0, 0);
+  const zeroSeconds = Math.floor(zeroYear / 1000);
+  const startOfYear = new Date(Date.UTC(year, 0, 1, 0, 0, 0));
   return Math.floor(startOfYear.getTime() / 1000) - zeroSeconds;
 }
 
@@ -168,9 +175,9 @@ function getSecondsAtStartOfMonth(year: number, month: number): number {
   if (month < 1 || month > 12) {
     throw new Error("Invalid month. Month must be between 1 and 12.");
   }
-  const zeroYear = new Date(year, 0, 1, 0, 0, 0);
+  const zeroYear = new Date(Date.UTC(year, 0, 1, 0, 0, 0));
   const zeroSeconds = Math.floor(zeroYear.getTime() / 1000);
-  const startOfMonth = new Date(year, month - 1, 1, 0, 0, 0);
+  const startOfMonth = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
   return Math.floor(startOfMonth.getTime() / 1000) - zeroSeconds;
 }
 
@@ -207,6 +214,111 @@ export const getZeroIndexForUnit = (type: TTimeIntervalType): number => {
     default:
       throw new Error("Invalid time interval type");
   }
+};
+
+export const getDayNumber = (time: TTimeInterval): number => {
+  if (time.type === "Y" && time.increment && time.increment.type === "M") {
+    if (time.increment.increment && time.increment.increment.type === "D") {
+      return time.increment.increment.value;
+    }
+  }
+  return 1;
+};
+
+export const getMonthNumber = (time: TTimeInterval): number => {
+  if (time.type === "Y" && time.increment && time.increment.type === "M") {
+    return time.increment.value;
+  }
+
+  if (time.type === "M") {
+    return time.value;
+  }
+
+  if (time.type === "Q") {
+    // If the type is Q, we can calculate the month based on the quarter
+    return (time.value - 1) * 3 + 1; // Q1 -> Jan, Q2 -> Apr, Q3 -> Jul, Q4 -> Oct
+  }
+
+  if (time.type === "W") {
+    // If the type is W, we can calculate the month based on the week
+    const month = Math.ceil(time.value / 4); // Approximate month from weeks
+    return month;
+  }
+
+  if (time.type === "D") {
+    // If the type is days, we can calculate the month based on the day
+    const month = Math.ceil(time.value / 30); // Approximate month from days
+    return month;
+  }
+
+  return 1; // Default to January
+};
+
+export const getWeekNumber = (time: TTimeInterval): number => {
+  if (time.increment && time.increment.type === "W") {
+    return time.increment.value;
+  }
+
+  if (time.type === "W") {
+    return time.value; // If the type is already W, return its value
+  }
+
+  if (time.type === "D") {
+    // If the type is days, we can calculate the week based on the day
+    return Math.ceil(time.value / 7); // Approximate week from days
+  }
+
+  if (time.type === "Y") {
+    if (time.increment?.type === "M") {
+      if (time.increment.increment && time.increment.increment.type === "D") {
+        // If the increment is defined in days, we can calculate the week based on the day
+        return Math.ceil(time.increment.increment.value / 7); // Approximate week from days
+      }
+
+      // If the type is Y and increment is M, we can calculate the week based on the month
+      const month = time.increment.value;
+      return Math.ceil((month * 4) / 7); // Approximate week from months
+    }
+  }
+
+  return 1; // Default to week 1
+};
+
+export const getQuarterNumber = (time: TTimeInterval) => {
+  if (time.increment && time.increment?.type === "Q") {
+    return time.increment.value;
+  }
+
+  if (time.increment && time.increment?.type === "M") {
+    // If the start is defined in months, we can calculate the quarter
+    const month = time.increment.value;
+    if (month <= 3) return 1; // Q1
+    if (month <= 6) return 2; // Q2
+    if (month <= 9) return 3; // Q3
+    if (month <= 12) return 4; // Q4
+  }
+
+  if (time.type === "Q") {
+    return time.value; // If the type is already Q, return its value
+  }
+
+  if (time.type === "W") {
+    if (time.value < 13) return 1;
+    if (time.value < 26) return 2;
+    if (time.value < 39) return 3;
+    return 4;
+  }
+
+  if (time.type === "D") {
+    // If the type is days, we can calculate the quarter based on the month
+    const month = Math.ceil(time.value / 30); // Approximate month from days
+    if (month <= 3) return 1; // Q1
+    if (month <= 6) return 2; // Q2
+    if (month <= 9) return 3; // Q3
+    return 4; // Q4
+  }
+
+  return 1; // Default to Q1
 };
 
 export const convertTimeIntervalUnitToSeconds = (
@@ -426,7 +538,7 @@ export function parseTimeString(
     for (const pattern of kernel.patterns) {
       try {
         return parseTimeString(timeString, pattern);
-      } catch (e) {
+      } catch {
         // Ignore the error and try the next pattern
       }
     }
@@ -436,7 +548,7 @@ export function parseTimeString(
   }
 
   const valueString = timeString.trim();
-  const formatStr = format.trim();
+  const formatStr = (format as string).trim();
 
   let currentTime: TTimeInterval | null = null;
 
@@ -553,56 +665,101 @@ export function parseTimeString(
 }
 
 export function dateToTimeInterval(
-  date: Date,
+  origDate: Date,
   accuracy: TTimeIntervalType
 ): TTimeInterval {
+  const date = new Date(origDate.getTime());
+  // Create a copy of the date to avoid mutating the original
+  // do rounding based on the accuracy so that if the month is July or later, it rounds to the next year
+  // if the day of month is greater than 15, it rounds to the next month
+  // if the hour is greater than 12, it rounds to the next hour
+  // if the minute is greater than 30, it rounds to the next minute
+
+  let incrementValue = 0;
   switch (accuracy) {
     case "Y":
-      return { type: "Y", value: date.getFullYear() };
+      // Round to the next year if the month is July or later
+      incrementValue = date.getUTCMonth() >= 6 ? 1 : 0;
+
+      break;
+    case "M":
+      // Round to the next month if the day is greater than 15
+      incrementValue = date.getUTCDate() > 15 ? 1 : 0;
+
+      if (date.getUTCMonth() + 1 + incrementValue > 12) {
+        incrementValue = -11;
+      }
+      break;
+    case "D":
+      // Round to the next day if the hour is greater than 12
+      incrementValue = date.getUTCHours() >= 12 ? 1 : 0;
+      break;
+    case "H":
+      // Round to the next hour if the minute is greater than 30
+      incrementValue = date.getUTCMinutes() >= 30 ? 1 : 0;
+      break;
+    case "m":
+      // Round to the next minute if the second is greater than or equal to 30
+      incrementValue = date.getUTCSeconds() >= 30 ? 1 : 0;
+      break;
+  }
+
+  switch (accuracy) {
+    case "Y":
+      return { type: "Y", value: date.getUTCFullYear() + incrementValue };
     case "M":
       return {
         type: "Y",
-        value: date.getFullYear(),
-        increment: { type: "M", value: date.getMonth() + 1 },
+        value: date.getUTCFullYear(),
+        increment: {
+          type: "M",
+          value: date.getUTCMonth() + 1 + incrementValue,
+        },
       };
     case "D":
       return {
         type: "Y",
-        value: date.getFullYear(),
+        value: date.getUTCFullYear(),
         increment: {
           type: "M",
-          value: date.getMonth() + 1,
-          increment: { type: "D", value: date.getDate() },
+          value: date.getUTCMonth() + 1,
+          increment: { type: "D", value: date.getUTCDate() + incrementValue },
         },
       };
     case "H":
       return {
         type: "Y",
-        value: date.getFullYear(),
+        value: date.getUTCFullYear(),
         increment: {
           type: "M",
-          value: date.getMonth() + 1,
+          value: date.getUTCMonth() + 1,
           increment: {
             type: "D",
-            value: date.getDate(),
-            increment: { type: "H", value: date.getHours() },
+            value: date.getUTCDate(),
+            increment: {
+              type: "H",
+              value: date.getUTCHours() + incrementValue,
+            },
           },
         },
       };
     case "m":
       return {
         type: "Y",
-        value: date.getFullYear(),
+        value: date.getUTCFullYear(),
         increment: {
           type: "M",
-          value: date.getMonth() + 1,
+          value: date.getUTCMonth() + 1,
           increment: {
             type: "D",
-            value: date.getDate(),
+            value: date.getUTCDate(),
             increment: {
               type: "H",
-              value: date.getHours(),
-              increment: { type: "m", value: date.getMinutes() },
+              value: date.getUTCHours(),
+              increment: {
+                type: "m",
+                value: date.getUTCMinutes() + incrementValue,
+              },
             },
           },
         },
@@ -610,20 +767,23 @@ export function dateToTimeInterval(
     case "s":
       return {
         type: "Y",
-        value: date.getFullYear(),
+        value: date.getUTCFullYear(),
         increment: {
           type: "M",
-          value: date.getMonth() + 1,
+          value: date.getUTCMonth() + 1,
           increment: {
             type: "D",
-            value: date.getDate(),
+            value: date.getUTCDate(),
             increment: {
               type: "H",
-              value: date.getHours(),
+              value: date.getUTCHours(),
               increment: {
                 type: "m",
-                value: date.getMinutes(),
-                increment: { type: "s", value: date.getSeconds() },
+                value: date.getUTCMinutes(),
+                increment: {
+                  type: "s",
+                  value: date.getUTCSeconds() + incrementValue,
+                },
               },
             },
           },
@@ -631,26 +791,26 @@ export function dateToTimeInterval(
       };
     case "W": {
       const startOfWeek = new Date(date);
-      startOfWeek.setDate(date.getDate() - date.getDay()); // Set to the start of the week (Sunday)
+      startOfWeek.setUTCDate(date.getUTCDate() - date.getUTCDay()); // Set to the start of the week (Sunday)
       return {
         type: "Y",
-        value: startOfWeek.getFullYear(),
+        value: startOfWeek.getUTCFullYear(),
         increment: {
           type: "M",
-          value: startOfWeek.getMonth() + 1,
+          value: startOfWeek.getUTCMonth() + 1,
           increment: {
             type: "D",
-            value: startOfWeek.getDate(),
+            value: startOfWeek.getUTCDate(),
             increment: { type: "W", value: 1 },
           },
         },
       };
     }
     case "Q": {
-      const quarter = Math.floor(date.getMonth() / 3) + 1; // 1 for Jan-Mar, 2 for Apr-Jun, etc.
+      const quarter = Math.floor(date.getUTCMonth() / 3) + 1; // 1 for Jan-Mar, 2 for Apr-Jun, etc.
       return {
         type: "Y",
-        value: date.getFullYear(),
+        value: date.getUTCFullYear(),
         increment: { type: "Q", value: quarter },
       };
     }
@@ -663,54 +823,88 @@ export function timeIntervalToDate(
   time: TTimeInterval,
   accuracy: TTimeIntervalType
 ): Date {
+  if (time.type === "Y") {
+    const rootDate = new Date(Date.UTC(time.value, 0, 1, 0, 0, 0)); // January 1st of the year
+    if (time.increment) {
+      if (time.increment.type === "Q") {
+        const quarterStartMonth = (time.increment.value - 1) * 3; // 0 for Q1, 3 for Q2, etc.
+        rootDate.setUTCMonth(quarterStartMonth);
+      }
+      if (time.increment.type === "M") {
+        rootDate.setUTCMonth(time.increment.value - 1); // Set month (0-indexed)
+        const days = time.increment.increment;
+        if (days && days.type === "D") {
+          rootDate.setUTCDate(days.value); // Set day of the month
+          const hours = days.increment;
+          if (hours && hours.type === "H") {
+            rootDate.setUTCHours(hours.value); // Set hour of the day
+            const minutes = hours.increment;
+            if (minutes && minutes.type === "m") {
+              rootDate.setUTCMinutes(minutes.value); // Set minute of the hour
+              const seconds = minutes.increment;
+              if (seconds && seconds.type === "s") {
+                rootDate.setUTCSeconds(seconds.value); // Set second of the minute
+              }
+            }
+          }
+        }
+      }
+    }
+    return rootDate;
+  }
+
   switch (accuracy) {
     case "Y":
-      return new Date(time.value, 0, 1, 0, 0, 0); // January 1st of the year
+      return new Date(Date.UTC(time.value, 0, 1, 0, 0, 0)); // January 1st of the year
     case "M":
-      return new Date(time.value, time.increment!.value - 1, 1, 0, 0, 0); // First day of the month
+      return new Date(
+        Date.UTC(time.value, time.increment!.value - 1, 1, 0, 0, 0)
+      ); // First day of the month
     case "D":
       return new Date(
-        time.value,
-        time.increment!.value - 1,
-        time.increment!.increment!.value,
-        0,
-        0,
-        0
-      ); // Specific day of the month
-    case "H":
+        Date.UTC(
+          time.value,
+          time.increment!.value - 1,
+          time.increment!.increment!.value,
+          0,
+          0,
+          0
+        )
+      ); // Specific day of the month    case "H":
       return new Date(
-        time.value,
-        time.increment!.value - 1,
-        time.increment!.increment!.value,
-        time.increment!.increment!.increment!.value,
-        0,
-        0
+        Date.UTC(
+          time.value,
+          time.increment!.value - 1,
+          time.increment!.increment!.value,
+          time.increment!.increment!.increment!.value,
+          0,
+          0
+        )
       ); // Specific hour of the day
     case "m":
       return new Date(
-        time.value,
-        time.increment!.value - 1,
-        time.increment!.increment!.value,
-        time.increment!.increment!.increment!.value,
-        time.increment!.increment!.increment!.increment!.value,
-        0
+        Date.UTC(
+          time.value,
+          time.increment!.value - 1,
+          time.increment!.increment!.value,
+          time.increment!.increment!.increment!.value,
+          time.increment!.increment!.increment!.increment!.value,
+          0
+        )
       ); // Specific minute of the hour
     case "s":
       return new Date(
-        time.value,
-        time.increment!.value - 1,
-        time.increment!.increment!.value,
-        time.increment!.increment!.increment!.value,
-        time.increment!.increment!.increment!.increment!.value,
-        time.increment!.increment!.increment!.increment!.increment!.value
+        Date.UTC(
+          time.value,
+          time.increment!.value - 1,
+          time.increment!.increment!.value,
+          time.increment!.increment!.increment!.value,
+          time.increment!.increment!.increment!.increment!.value,
+          time.increment!.increment!.increment!.increment!.increment!.value
+        )
       ); // Specific second of the minute
-    case "W": {
-      const startOfWeek = new Date(time.value, 0, 1, 0, 0, 0);
-      startOfWeek.setDate(
-        startOfWeek.getDate() + (time.increment!.value - 1) * 7
-      ); // Calculate the start of the week
-      return startOfWeek;
-    }
+    case "W":
+      return timeIntervalToDate(time, "D");
     case "Q": {
       const findQuarterFromTime = (t: TTimeInterval): number => {
         if (t.type === "Q") {
@@ -724,19 +918,19 @@ export function timeIntervalToDate(
       if (q !== -1) {
         switch (q) {
           case 1:
-            return new Date(time.value, 0, 1, 0, 0, 0); // January 1st of Q1
+            return new Date(Date.UTC(time.value, 0, 1, 0, 0, 0)); // January 1st of Q1
           case 2:
-            return new Date(time.value, 3, 1, 0, 0, 0); // April 1st of Q2
+            return new Date(Date.UTC(time.value, 3, 1, 0, 0, 0)); // April 1st of Q2
           case 3:
-            return new Date(time.value, 6, 1, 0, 0, 0); // July 1st of Q3
+            return new Date(Date.UTC(time.value, 6, 1, 0, 0, 0)); // July 1st of Q3
           case 4:
-            return new Date(time.value, 9, 1, 0, 0, 0); // October 1st of Q4
+            return new Date(Date.UTC(time.value, 9, 1, 0, 0, 0)); // October 1st of Q4
           default:
             throw new Error(`Invalid quarter value: ${q}`);
         }
       }
       const quarterStartMonth = (time.increment!.value - 1) * 3; // 0 for Q1, 3 for Q2, etc.
-      return new Date(time.value, quarterStartMonth, 1, 0, 0, 0); // First day of the quarter
+      return new Date(Date.UTC(time.value, quarterStartMonth, 1, 0, 0, 0)); // First day of the quarter
     }
     default:
       throw new Error(`Unsupported accuracy type: ${accuracy}`);
@@ -755,4 +949,216 @@ export function isTimeInRange({
   const endInSeconds = convertToSeconds(range.end);
 
   return timeInSeconds >= startInSeconds && timeInSeconds <= endInSeconds;
+}
+
+export function convertSecondsToTimeInterval(
+  seconds: number,
+  type: TTimeIntervalType
+): TTimeInterval {
+  return createInteval(
+    getTimeDifferenceInUnit(
+      createInteval(0, "s"),
+      createInteval(seconds, "s"),
+      type
+    ),
+    type
+  );
+}
+
+export function splitTimeRangeIntoIntervals(
+  range: { start: TTimeInterval; end: TTimeInterval },
+  interval: TTimeIntervalType
+): TTimeInterval[] {
+  if (range.start.type === interval && range.end.type === interval) {
+    const res: TTimeInterval[] = [];
+    for (let i = range.start.value; i <= range.end.value; i++) {
+      const timeInterval: TTimeInterval = {
+        type: interval,
+        value: i,
+      };
+      res.push(timeInterval);
+    }
+    return res;
+  }
+
+  // Year ranges pre
+  if (range.start.type === "Y" && range.end.type === "Y") {
+    if (interval === "Q") {
+      const res: TTimeInterval[] = [];
+      for (let i = range.start.value; i <= range.end.value; i++) {
+        // for the first index ( i === range.start.value), check if the start quarter is defined
+
+        const startQuarter =
+          range.start.value === i ? getQuarterNumber(range.start) : 1;
+        const endQuarter =
+          range.end.value === i ? getQuarterNumber(range.end) : 4;
+
+        for (let j = startQuarter; j <= endQuarter; j++) {
+          const timeInterval: TTimeInterval = {
+            type: "Y",
+            value: i,
+            increment: { type: "Q", value: j },
+          };
+          res.push(timeInterval);
+        }
+      }
+      return res;
+    }
+
+    if (interval === "M") {
+      const res: TTimeInterval[] = [];
+      for (let i = range.start.value; i <= range.end.value; i++) {
+        // for the first index ( i === range.start.value), check if the start month is defined
+        const startMonth =
+          i === range.start.value ? getMonthNumber(range.start) : 1;
+        const endMonth = i === range.end.value ? getMonthNumber(range.end) : 12;
+
+        for (let j = startMonth; j <= endMonth; j++) {
+          const timeInterval: TTimeInterval = {
+            type: "Y",
+            value: i,
+            increment: { type: "M", value: j },
+          };
+          res.push(timeInterval);
+        }
+      }
+      return res;
+    }
+
+    if (interval === "W") {
+      const res: TTimeInterval[] = [];
+      for (let i = range.start.value; i <= range.end.value; i++) {
+        // for the first index ( i === range.start.value), check if the start week is defined
+        const startWeek =
+          i === range.start.value ? getWeekNumber(range.start) : 1;
+        const endWeek = i === range.end.value ? getWeekNumber(range.end) : 52;
+
+        for (let j = startWeek; j <= endWeek; j++) {
+          const timeInterval: TTimeInterval = {
+            type: "Y",
+            value: i,
+            increment: { type: "W", value: j },
+          };
+          res.push(timeInterval);
+        }
+      }
+      return res;
+    }
+
+    if (interval === "D") {
+      const res: TTimeInterval[] = [];
+      for (let i = range.start.value; i <= range.end.value; i++) {
+        // for the first index ( i === range.start.value), check if the start day is defined
+
+        const startMonth =
+          range.start.value === i ? getMonthNumber(range.start) : 1;
+        const endMonth = range.end.value === i ? getMonthNumber(range.end) : 12;
+
+        for (let m = startMonth; m <= endMonth; m++) {
+          const daysInMonth = getDaysInMonth(i, m);
+          const startDay =
+            i === range.start.value && m === startMonth
+              ? getDayNumber(range.start)
+              : 1;
+          const endDay =
+            i === range.end.value && m === endMonth
+              ? getDayNumber(range.end)
+              : daysInMonth;
+
+          for (let d = startDay; d <= endDay; d++) {
+            const timeInterval: TTimeInterval = {
+              type: "Y",
+              value: i,
+              increment: {
+                type: "M",
+                value: m,
+                increment: { type: "D", value: d },
+              },
+            };
+            res.push(timeInterval);
+          }
+        }
+      }
+      return res;
+    }
+  }
+
+  const dateStart = timeIntervalToDate(range.start, interval);
+  const dateEnd = timeIntervalToDate(range.end, interval);
+
+  const intervalInSeconds = convertTimeIntervalUnitToSeconds(interval);
+
+  const intervals: TTimeInterval[] = [];
+
+  let timeNow = new Date(dateStart.getTime());
+
+  const endStartDiff = getTimeDifferenceInSeconds(range.start, range.end);
+
+  if (endStartDiff < intervalInSeconds) {
+    return [range.start];
+  }
+
+  console.log(range.start, range.end, interval);
+  console.log(
+    `Splitting time range from ${dateStart.toISOString()} to ${dateEnd.toISOString()} by ${interval}`
+  );
+
+  while (true) {
+    // increment the time by the interval
+
+    const currentInterval = dateToTimeInterval(timeNow, interval);
+    intervals.push(currentInterval);
+
+    timeNow = new Date(timeNow.getTime() + intervalInSeconds * 1000);
+
+    const diff = getTimeDifferenceInUnit(
+      dateToTimeInterval(timeNow, interval),
+      range.end,
+      interval
+    );
+    if (diff < 0) {
+      break;
+    }
+  }
+
+  return intervals;
+}
+
+export function findSubAccuracy(
+  time: TTimeInterval,
+  accuracy: TTimeIntervalType
+): TTimeInterval | null {
+  if (time.type === accuracy) {
+    return time;
+  }
+
+  if (time.increment) {
+    const subAccuracy = findSubAccuracy(time.increment, accuracy);
+    if (subAccuracy) {
+      return subAccuracy;
+    }
+  }
+
+  return null;
+}
+
+export function flattenResults(
+  times: TTimeInterval[],
+  accuracy: TTimeIntervalType
+): TTimeInterval[] {
+  if (times.length === 0) {
+    return [];
+  }
+
+  const flattened: TTimeInterval[] = [];
+  for (const time of times) {
+    const subAccuracy = findSubAccuracy(time, accuracy);
+    if (subAccuracy) {
+      flattened.push(subAccuracy);
+    } else {
+      // If no sub-accuracy found, push the original time
+      flattened.push(time);
+    }
+  }
+  return flattened;
 }

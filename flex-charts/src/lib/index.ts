@@ -7,7 +7,6 @@
 
 // Components
 export { LineChart } from "./components/LineChart";
-export { BarChart } from "./components/TimeLineBarChart";
 
 // Utilities
 export { useChartTheme } from "./hooks/useChartTheme";
