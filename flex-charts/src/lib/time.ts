@@ -15,6 +15,130 @@ export type TValidTimePatterns =
   | `Q`
   | `Y${TDelimiter}Q`;
 
+/*
+    const dateFormatsKernel: TTimeParserKernel = {
+      patterns: [
+        "YYYY-MM-DD",
+        "YYYY/MM/DD",
+        "MM/DD/YYYY",
+        "DD-MM-YYYY",
+        "YYYY-MM",
+        "MM/YYYY",
+      ],
+    };
+*/
+
+const defaultTimeParserKernel: TTimeParserKernel = {
+  patterns: [
+    // 2025-01-01
+    "YYYY-MM-DD",
+
+    // 2025/01/01
+    "YYYY/MM/DD",
+
+    // 01/01/2025
+    "MM/DD/YYYY",
+
+    // European format
+    "DD.MM.YYYY",
+
+    // 01-01-2025
+    "DD-MM-YYYY",
+
+    // 2025-01
+    "YYYY-MM",
+
+    // 01/2025
+    "MM/YYYY",
+
+    // Q2/2025
+    "'Q'Q/YYYY",
+
+    // 2025/Q2
+    "YYYY/'Q'Q",
+
+    // 2025Q2
+    "YYYY'Q'Q",
+
+    // 2025/1
+    "YYYY/M",
+
+    // 2025/01
+    "M/YYYY",
+
+    // 08:30:22
+    "HH:mm:ss",
+
+    // 08:30
+    "HH:mm",
+
+    // 8:30:22
+    "H:mm:s", // Durations
+
+    // 3 years
+    "Y' years'",
+    "YY' years'",
+    "YYY' years'",
+    "YYYY' years'",
+
+    // 1 year
+    "Y' year'",
+
+    // 2 querters
+    "Q' quarters'",
+    "QQ' quarters'",
+
+    // 1 querter
+    "Q' quarter'",
+
+    // 2 months
+    "M' months'",
+    "MM' months'",
+
+    // 1 month
+    "M' month'",
+
+    // 5 weeks
+    "W' weeks'",
+
+    // 5 days
+    "D' days'",
+    "DD' days'",
+
+    // 1 day
+    "D' day'",
+
+    // 3 hours
+    "H' hours'",
+    "HH' hours'",
+    "HHH' hours'",
+
+    // 1 hour
+    "H' hour'",
+
+    // 30 minutes
+    "m' minutes'",
+
+    // 1 minute
+    "m' minute'",
+    "mm' minutes'",
+    "mmm' minutes'",
+
+    // 45 seconds
+    "s' seconds'",
+    "ss' seconds'",
+    "sss' seconds'",
+
+    // 1 second
+    "s' second'",
+  ],
+};
+
+// Time value pattern list that should be matched
+export type TTimeParserKernel = {
+  patterns: string[];
+};
+
 export interface TTimeInterval {
   type: TTimeIntervalType;
   value: number;
@@ -169,8 +293,6 @@ export const convertToSeconds = (
     currentYear
   );
 
-  const zeroIndex = isDelta ? getZeroIndexForUnit(time.type) : 0;
-
   const value = getValue();
 
   if (time.increment) {
@@ -297,8 +419,22 @@ export function isValidTimeIntervalType(
  */
 export function parseTimeString(
   timeString: string,
-  format: string
+  format: string | TTimeParserKernel = defaultTimeParserKernel
 ): TTimeInterval {
+  if (typeof format === "object" && format.patterns) {
+    const kernel = format as TTimeParserKernel;
+    for (const pattern of kernel.patterns) {
+      try {
+        return parseTimeString(timeString, pattern);
+      } catch (e) {
+        // Ignore the error and try the next pattern
+      }
+    }
+    throw new Error(
+      `Invalid time string: ${timeString}. No valid patterns found in the kernel.`
+    );
+  }
+
   const valueString = timeString.trim();
   const formatStr = format.trim();
 
@@ -308,10 +444,54 @@ export function parseTimeString(
 
   const listOfIntervals: TTimeInterval[] = [];
 
-  for (let i = 0; i < formatStr.length; i++) {
-    const char = formatStr[i];
+  const formatStringLength = formatStr.length;
+  let formatStringPosition = 0;
+  let parserStringPosition = 0;
+
+  while (formatStringPosition < formatStringLength) {
+    // Move forward
+    let format_index = formatStringPosition++;
+    let char = formatStr[format_index];
+    let tokenLen = 0;
+
+    if (char === "'") {
+      // Escape single quotes in the format string
+      // Skip until the next single quote
+
+      while (
+        formatStringPosition < formatStringLength &&
+        formatStr[formatStringPosition] !== "'"
+      ) {
+        if (formatStr[formatStringPosition] !== "'") {
+          const charAtPosition = valueString[parserStringPosition + tokenLen];
+          if (charAtPosition !== formatStr[formatStringPosition]) {
+            throw new Error(
+              `Invalid time string: ${timeString}. Expected '${char}' at position ${
+                parserStringPosition + tokenLen
+              }, but found '${charAtPosition}'`
+            );
+          }
+          tokenLen++;
+        }
+        formatStringPosition++;
+      }
+      format_index = formatStringPosition++;
+      char = formatStr[format_index];
+      parserStringPosition += tokenLen;
+      continue;
+    } else {
+      tokenLen = 1;
+    }
+
+    const i = parserStringPosition;
+    parserStringPosition += tokenLen;
 
     if (!isValidTimeIntervalType(char)) {
+      if (char !== valueString[i]) {
+        throw new Error(
+          `Invalid time string: ${timeString}. Expected '${char}' at position ${i}, but found '${valueString[i]}'`
+        );
+      }
       continue; // Skip invalid characters
     }
 
@@ -350,7 +530,9 @@ export function parseTimeString(
   });
 
   if (listOfIntervals.length === 0) {
-    return { type: "s", value: 0 };
+    throw new Error(
+      `Invalid time string: ${timeString}. No valid time intervals found.`
+    );
   }
 
   const result = listOfIntervals[0];
@@ -559,4 +741,18 @@ export function timeIntervalToDate(
     default:
       throw new Error(`Unsupported accuracy type: ${accuracy}`);
   }
+}
+
+export function isTimeInRange({
+  time,
+  range,
+}: {
+  time: TTimeInterval;
+  range: { start: TTimeInterval; end: TTimeInterval };
+}): boolean {
+  const timeInSeconds = convertToSeconds(time);
+  const startInSeconds = convertToSeconds(range.start);
+  const endInSeconds = convertToSeconds(range.end);
+
+  return timeInSeconds >= startInSeconds && timeInSeconds <= endInSeconds;
 }

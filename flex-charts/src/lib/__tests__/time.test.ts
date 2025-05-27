@@ -10,7 +10,6 @@ import {
   dateToTimeInterval,
   timeIntervalToDate,
 } from "../time";
-import { parse } from "path";
 
 describe("Time Utilities", () => {
   describe("Support converting Date object to TTimeInterval", () => {
@@ -105,8 +104,8 @@ describe("Time Utilities", () => {
     });
 
     it("Should also support 01/2021 as QQ/YYYY and 03/2021 as QQ/YYYY", () => {
-      const quarter1 = parseTimeString("01/2021", "QQ/YYYY");
-      const quarter2 = parseTimeString("03/2021", "QQ/YYYY");
+      const quarter1 = parseTimeString("Q1/2021", "'Q'Q/YYYY");
+      const quarter2 = parseTimeString("Q3/2021", "'Q'Q/YYYY");
 
       const diffInQuarters = getTimeDifferenceInUnit(quarter1, quarter2, "Y");
       expect(diffInQuarters).toBe(0.5); // 0.5 quarters difference

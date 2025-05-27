@@ -174,3 +174,63 @@ const monthsDiff = getTimeDifferenceInUnit(startTime, endTime, "M"); // 12
 - `getTimeDifferenceInUnit()`: Gets the difference between two time points in a specified unit
 - `calculateTimeSlot()`: Determines where a time value falls within a range (0-1)
 - `parseTimeString()`: Parses time strings according to specified formats
+- `dateToTimeInterval()`: Converts a JavaScript Date object to a TTimeInterval
+- `timeIntervalToDate()`: Converts a TTimeInterval to a JavaScript Date object
+- `isTimeInRange()`: Checks if a time value falls within a specific range
+
+#### Understanding `parseTimeString`
+
+The `parseTimeString` function converts string representations of dates and times into the library's internal `TTimeInterval` format. This is especially useful when working with user inputs or data coming from various sources in different formats.
+
+```typescript
+parseTimeString(timeString: string, format: string | TTimeParserKernel = defaultTimeParserKernel): TTimeInterval
+```
+
+**Parameters:**
+
+- `timeString`: The string to parse (e.g., "2025-01-15", "3 years", "08:30")
+- `format`: (Optional) Either a specific format string or a TTimeParserKernel object containing multiple patterns
+
+**Usage Examples:**
+
+```typescript
+// Using specific format strings
+const date1 = parseTimeString("2025-01-15", "YYYY-MM-DD");
+const time1 = parseTimeString("08:30:22", "HH:mm:ss");
+
+// Using the default kernel (automatically tries multiple patterns)
+const date2 = parseTimeString("2025-01-15"); 
+const date3 = parseTimeString("15.01.2025"); // European format
+const duration = parseTimeString("3 years");
+
+// Creating a custom parser kernel
+const myCustomFormats: TTimeParserKernel = {
+  patterns: [
+    "MM-DD-YYYY",
+    "DD/MM/YY"
+    // Add your custom patterns here
+  ]
+};
+const date4 = parseTimeString("12-25-2025", myCustomFormats);
+```
+
+**Supported Format Patterns:**
+
+The library includes many pre-configured patterns in the `defaultTimeParserKernel`, including:
+
+1. Date formats:
+   - ISO style: "YYYY-MM-DD", "YYYY/MM/DD"
+   - US style: "MM/DD/YYYY"
+   - European style: "DD.MM.YYYY", "DD-MM-YYYY"
+   - Partial dates: "YYYY-MM", "MM/YYYY"
+
+2. Quarter formats:
+   - "YYYY/Q", "Q1/YYYY", "YYYY'Q'Q"
+
+3. Time formats:
+   - "HH:mm:ss", "HH:mm", "H:mm:s"
+
+4. Duration formats:
+   - "Y' years'", "M' months'", "D' days'", "H' hours'", etc.
+
+You can extend these with your own custom patterns when needed.
