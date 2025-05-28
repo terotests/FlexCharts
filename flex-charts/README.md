@@ -1,13 +1,30 @@
 # FlexCharts
 
-A flexible chart library for React applications.
+> **⚠️ WORK IN PROGRESS**
+>
+> This library is currently under active development. The documentation below is a draft and describes planned functionality that may not be fully implemented yet. Features, APIs, and examples are subject to change.
 
-## Features
+A flexible chart library for React applications focused on time-based visualizations with advanced customization capabilities.
 
-- 📊 Multiple chart types: Line, Bar (and more to come)
-- 🎨 Customizable themes with light/dark mode support
-- 📱 Responsive design
-- 🎯 TypeScript support with full type definitions
+## Planned Features
+
+### Core Functionality
+- 📐 **Flexible Layout System** - Adaptive wireframe structure with proper data positioning
+- 🔄 **Smooth Scrolling** - Horizontal and vertical scrolling with touch support
+- 📏 **Configurable Axes** - Customizable x and y axis with support for various data types
+- 📊 **Multiple Chart Types** - Line, Bar, Timeline, and more to come
+
+### Advanced Capabilities
+- 🧩 **Gantt Chart Support** - Connect time series elements to create dependencies
+- ✏️ **Live Editing** - Real-time chart modification and data manipulation
+- 📤 **Data Export** - Export to Excel, CSV and other formats
+- 🎛️ **Live Configuration** - Adjust chart settings and appearance in real-time
+
+### User Experience
+- 🎨 **Theming & Customization** - Light/dark mode and custom rendering overrides
+- 🚀 **Performance Optimization** - Virtualization for large datasets and view optimization
+- 📱 **Responsive Design** - Adapt to different screen sizes and orientations
+- 🎯 **Full TypeScript Support** - Complete type definitions for enhanced developer experience
 
 ## Installation
 
@@ -19,7 +36,9 @@ yarn add flex-charts
 pnpm add flex-charts
 ```
 
-## Quick Start
+## Planned Usage
+
+> **Note:** The examples below illustrate the intended API, which is still under development.
 
 ````jsx
 import { LineChart } from 'flex-charts';
@@ -234,3 +253,30 @@ The library includes many pre-configured patterns in the `defaultTimeParserKerne
    - "Y' years'", "M' months'", "D' days'", "H' hours'", etc.
 
 You can extend these with your own custom patterns when needed.
+
+## Development Status
+
+This library is currently in early development. Here's an overview of the current status:
+
+| Feature | Status |
+|---------|--------|
+| Core architecture | 🚧 In Progress |
+| Time utilities | ✅ Partially Complete |
+| Line charts | 🚧 Basic Implementation |
+| Bar charts | 🚧 In Progress |
+| Timeline charts | 🔄 Planned |
+| Theming | 🚧 Basic Implementation |
+| Documentation | 📝 Draft |
+| Unit tests | 🧪 In Progress |
+
+For a more detailed development roadmap, please refer to the [PLAN.md](./PLAN.md) file.
+
+## Contributing
+
+As this is a work in progress, contributions are welcome! Please check the [PLAN.md](./PLAN.md) file for planned features and current priorities.
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add some amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request

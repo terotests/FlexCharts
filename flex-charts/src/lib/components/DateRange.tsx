@@ -4,6 +4,7 @@ import {
   flattenResults,
   parseTimeString,
   splitTimeRangeIntoIntervals,
+  type TTimeInterval,
   type TTimeIntervalType,
 } from "../time";
 
@@ -13,6 +14,7 @@ import { useSwipe } from "../hooks/useSwipe";
 const Bar = (props: {
   start: string;
   end: string;
+  renderTitle?: (time: TTimeIntervalType) => string;
   children?: React.ReactNode;
   range: {
     start: string;
@@ -52,6 +54,8 @@ const Bar = (props: {
     >
       <div
         className="bar"
+        tabIndex={0}
+        title={`${start} - ${end}`}
         style={{
           left: prosStart,
           top: "0px",
@@ -75,6 +79,9 @@ const Bar = (props: {
 export const DateRange = (props: {
   startDate: string;
   endDate: string;
+  width?: string;
+  labelFontSize?: string;
+  renderTitle?: (time: TTimeInterval) => string;
   interval: TTimeIntervalType;
 }) => {
   const { startDate, endDate, interval } = props;
@@ -83,14 +90,11 @@ export const DateRange = (props: {
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
 
   const slots = useMemo(() => {
-    return flattenResults(
-      splitTimeRangeIntoIntervals(
-        {
-          start,
-          end,
-        },
-        interval
-      ),
+    return splitTimeRangeIntoIntervals(
+      {
+        start,
+        end,
+      },
       interval
     );
   }, [start, end, interval]);
@@ -104,7 +108,7 @@ export const DateRange = (props: {
         display: "flex",
         flexDirection: "column",
         gap: "10px",
-        width: "100%",
+        width: props.width ? props.width : "100%",
       }}
       key={`${startDate}-${endDate}-${interval}`}
     >
@@ -243,14 +247,23 @@ export const DateRange = (props: {
             start="03/2021"
             end="06/2025"
             range={{ start: props.startDate, end: props.endDate }}
-          />
+          >
+            GraphQL
+          </Bar>
           <div
             className="time-slots"
-            style={{ width: "100%", display: "flex" }}
+            style={{ width: "100%", display: "flex", flexWrap: "nowrap" }}
           >
             {slots.map((slot, index) => (
-              <div className="time-slot" key={index}>
-                {slot.value}
+              <div
+                className="time-slot"
+                key={index}
+                style={{
+                  whiteSpace: "nowrap",
+                  fontSize: props.labelFontSize || "12px",
+                }}
+              >
+                {props.renderTitle ? props.renderTitle(slot) : slot.value}
               </div>
             ))}
           </div>

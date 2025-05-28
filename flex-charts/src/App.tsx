@@ -69,7 +69,15 @@ function App() {
 
       <main>
         <div className="chart-container">
-          <DateRange startDate="1992" endDate="12/2025" interval="Y" key="1" />
+          <DateRange
+            startDate="1992"
+            endDate="12/2025"
+            interval="Y"
+            width="1000px"
+            labelFontSize="10px"
+            key="1"
+            renderTitle={(time) => `${time.value.toString().slice(2, 4)}`}
+          />
 
           <DateRange startDate="2010" endDate="12/2025" interval="Y" key="2" />
         </div>
