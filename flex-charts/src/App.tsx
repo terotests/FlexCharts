@@ -1,42 +1,16 @@
-import { useState } from "react";
-import { LineChart, useChartTheme, type ChartData } from "./lib";
+import { useChartTheme } from "./lib";
 import "./App.css";
 
-import { DateRange, type BarData } from "./lib/components/DateRange";
+import {
+  TimeLineChart,
+  type TimeLineBarData,
+} from "./lib/components/TimeLineChart";
 
 function App() {
   const { theme, toggleTheme } = useChartTheme();
-  const [chartType, setChartType] = useState<"line" | "bar">("line");
 
-  // Example data
-  const data: ChartData = {
-    labels: ["January", "February", "March", "April", "May", "June"],
-    datasets: [
-      {
-        label: "Dataset 1",
-        data: [65, 59, 80, 81, 56, 55],
-        color: theme.colors.primary[0],
-      },
-      {
-        label: "Dataset 2",
-        data: [28, 48, 40, 19, 86, 27],
-        color: theme.colors.primary[1],
-      },
-    ],
-  };
-
-  const chartOptions = {
-    width: 600,
-    height: 400,
-    title: "FlexCharts Example",
-    legend: {
-      show: true,
-      position: "top" as const,
-    },
-  };
-
-  // Custom bar data for the first DateRange with colors
-  const customBars: BarData[] = [
+  // Custom bar data for the first TimeLineChart with colors
+  const customBars: TimeLineBarData[] = [
     {
       id: 1,
       start: "05/1992",
@@ -160,26 +134,12 @@ function App() {
           <button onClick={toggleTheme}>
             Switch to {theme.mode === "light" ? "Dark" : "Light"} Mode
           </button>
-          <div className="chart-type-selector">
-            <button
-              onClick={() => setChartType("line")}
-              className={chartType === "line" ? "active" : ""}
-            >
-              Line Chart
-            </button>
-            <button
-              onClick={() => setChartType("bar")}
-              className={chartType === "bar" ? "active" : ""}
-            >
-              Bar Chart
-            </button>
-          </div>
         </div>
       </header>
 
       <main>
         <div className="chart-container">
-          <DateRange
+          <TimeLineChart
             startDate="1992"
             endDate="12/2025"
             interval="Y"
@@ -189,41 +149,43 @@ function App() {
             bars={customBars}
             renderTitle={(time) => `${time.value.toString().slice(2, 4)}`}
           />
-
-          <DateRange startDate="2010" endDate="12/2025" interval="Y" key="2" />
         </div>
 
         <div className="code-example">
           <h2>Example Code</h2>
           <pre>
             <code>
-              {`import { ${
-                chartType === "line" ? "LineChart" : "BarChart"
-              } } from 'flex-charts';
+              {`import { TimeLineChart, type TimeLineBarData } from 'flex-charts';
 
-const data = {
-  labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-  datasets: [
-    {
-      label: 'Dataset 1',
-      data: [65, 59, 80, 81, 56, 55],
-    },
-    {
-      label: 'Dataset 2',
-      data: [28, 48, 40, 19, 86, 27],
-    },
-  ],
-};
+const timelineBars: TimeLineBarData[] = [
+  {
+    id: 1,
+    start: "01/2020",
+    end: "12/2022",
+    label: "Project Alpha",
+    backgroundColor: "#3b82f6",
+    textColor: "white"
+  },
+  {
+    id: 2,
+    start: "06/2021",
+    end: "03/2024",
+    label: "Project Beta",
+    backgroundColor: "#ef4444",
+    textColor: "white"
+  }
+];
 
-function MyChart() {
+function Timeline() {
   return (
-    <${chartType === "line" ? "LineChart" : "BarChart"} 
-      data={data}
-      options={{
-        width: 600,
-        height: 400,
-        title: 'My Chart',
-      }}
+    <TimeLineChart
+      startDate="2020"
+      endDate="2025"
+      interval="Y"
+      width="800px"
+      labelFontSize="12px"
+      bars={timelineBars}
+      renderTitle={(time) => \`'\${time.value.toString().slice(2, 4)}\`}
     />
   );
 }`}
