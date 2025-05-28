@@ -7,10 +7,10 @@ import {
   type TTimeIntervalType,
 } from "../time";
 
-import "./DateRange.css"; // Assuming you have a CSS file for styling
+import "./TimeLineChart.css"; // Assuming you have a CSS file for styling
 
 // Type definitions for the bar data
-export interface BarData {
+export interface TimeLineBarData {
   id?: string | number;
   start: string;
   end: string;
@@ -20,7 +20,7 @@ export interface BarData {
   textColor?: string;
 }
 
-const Bar = (props: {
+const TimeLineBar = (props: {
   start: string;
   end: string;
   renderTitle?: (time: TTimeIntervalType) => string;
@@ -90,14 +90,14 @@ const Bar = (props: {
   );
 };
 
-export const DateRange = (props: {
+export const TimeLineChart = (props: {
   startDate: string;
   endDate: string;
   width?: string;
   labelFontSize?: string;
   renderTitle?: (time: TTimeInterval) => string;
   interval: TTimeIntervalType;
-  bars?: BarData[];
+  bars?: TimeLineBarData[];
 }) => {
   const { startDate, endDate, interval, bars } = props;
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
@@ -150,8 +150,9 @@ export const DateRange = (props: {
             overflow: "hidden",
           }}
         >
+          {" "}
           {barData.map((bar) => (
-            <Bar
+            <TimeLineBar
               key={bar.id || `${bar.start}-${bar.end}-${bar.label}`}
               start={bar.start}
               end={bar.end}
@@ -161,7 +162,7 @@ export const DateRange = (props: {
               range={{ start: props.startDate, end: props.endDate }}
             >
               {bar.label}
-            </Bar>
+            </TimeLineBar>
           ))}
           <div
             className="time-slots"

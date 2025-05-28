@@ -7,6 +7,10 @@
 
 // Components
 export { LineChart } from "./components/LineChart";
+export {
+  TimeLineChart,
+  type TimeLineBarData,
+} from "./components/TimeLineChart";
 
 // Utilities
 export { useChartTheme } from "./hooks/useChartTheme";
