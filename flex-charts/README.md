@@ -41,9 +41,9 @@ pnpm add flex-charts
 
 ## 🌐 Live Demo
 
-**[View the live demo on GitHub Pages →](https://yourusername.github.io/FlexCharts/)**
+**[View the live demo on GitHub Pages →](https://terotests.github.io/FlexCharts/)**
 
-The demo showcases the TimeLineChart component with interactive examples and code snippets. The demo is automatically deployed from the `main` branch using GitHub Actions.
+The demo showcases the TimeLineChart component with interactive examples and code snippets. The demo is automatically deployed from the `main` branch using GitHub Actions whenever changes are pushed to the repository.
 
 ### Local Development
 
@@ -436,3 +436,44 @@ As this is a work in progress, contributions are welcome! Please check the [PLAN
 3. Commit your changes: `git commit -m 'Add some amazing feature'`
 4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
+
+## 🚀 Deployment
+
+### GitHub Pages
+
+This project is automatically deployed to GitHub Pages using GitHub Actions. The deployment process works as follows:
+
+#### How it Works
+
+1. **Trigger**: The deployment runs automatically on every push to the `main` branch
+2. **Build Process**: GitHub Actions runs `npm run build:playground` to create the production build
+3. **Output**: The build artifacts are generated in the `dist` directory
+4. **Deployment**: The built files are automatically deployed to GitHub Pages
+
+#### Configuration Files
+
+- **GitHub Actions Workflow**: `.github/workflows/deploy.yml` handles the CI/CD pipeline
+- **Vite Configuration**: `vite.config.ts` is configured with the correct base path (`/FlexCharts/`) for GitHub Pages
+- **Build Script**: `package.json` includes a `build:playground` script that builds the demo app
+
+#### Manual Deployment
+
+You can also trigger a deployment manually:
+
+1. Go to the repository's Actions tab on GitHub
+2. Select the "Deploy to GitHub Pages" workflow
+3. Click "Run workflow" and select the `main` branch
+
+#### Local Testing
+
+To test the production build locally before deployment:
+
+```bash
+# Build the playground
+npm run build:playground
+
+# Preview the production build (optional)
+npm run preview
+```
+
+The demo will be available at: **[https://terotests.github.io/FlexCharts/](https://terotests.github.io/FlexCharts/)**
