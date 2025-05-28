@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import {
   calculateTimeSlot,
-  flattenResults,
   parseTimeString,
   splitTimeRangeIntoIntervals,
   type TTimeInterval,
@@ -9,19 +8,32 @@ import {
 } from "../time";
 
 import "./DateRange.css"; // Assuming you have a CSS file for styling
-import { useSwipe } from "../hooks/useSwipe";
+
+// Type definitions for the bar data
+export interface BarData {
+  id?: string | number;
+  start: string;
+  end: string;
+  label: string;
+  color?: string;
+  backgroundColor?: string;
+  textColor?: string;
+}
 
 const Bar = (props: {
   start: string;
   end: string;
   renderTitle?: (time: TTimeIntervalType) => string;
   children?: React.ReactNode;
+  color?: string;
+  backgroundColor?: string;
+  textColor?: string;
   range: {
     start: string;
     end: string;
   };
 }) => {
-  const { start, end, range } = props;
+  const { start, end, range, color, backgroundColor, textColor } = props;
 
   const startTime = useMemo(() => parseTimeString(start), [start]);
   const endTime = useMemo(() => parseTimeString(end), [end]);
@@ -60,7 +72,6 @@ const Bar = (props: {
           left: prosStart,
           top: "0px",
           width: prosEnd,
-
           height: "20px",
           borderRadius: "10px",
           overflow: "hidden",
@@ -68,6 +79,9 @@ const Bar = (props: {
           position: "absolute",
           justifyContent: "center",
           alignItems: "center",
+          backgroundColor: backgroundColor || "#3b82f6",
+          color: textColor || "white",
+          border: `1px solid ${color || backgroundColor || "#3b82f6"}`,
         }}
       >
         {props.children}
@@ -83,11 +97,14 @@ export const DateRange = (props: {
   labelFontSize?: string;
   renderTitle?: (time: TTimeInterval) => string;
   interval: TTimeIntervalType;
+  bars?: BarData[];
 }) => {
-  const { startDate, endDate, interval } = props;
-
+  const { startDate, endDate, interval, bars } = props;
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
+
+  // Use provided bars or empty array if no bars provided
+  const barData = bars || [];
 
   const slots = useMemo(() => {
     return splitTimeRangeIntoIntervals(
@@ -122,6 +139,7 @@ export const DateRange = (props: {
           width: "100%",
         }}
       >
+        {" "}
         <div
           style={{
             display: "flex",
@@ -132,124 +150,19 @@ export const DateRange = (props: {
             overflow: "hidden",
           }}
         >
-          <Bar
-            start="05/1992"
-            end="05/1995"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            Turbo C
-          </Bar>
-
-          <Bar
-            start="05/1992"
-            end="05/1998"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            Pascal
-          </Bar>
-          <Bar
-            start="05/1994"
-            end="05/1999"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            x86 Asm (TASM)
-          </Bar>
-
-          <Bar
-            start="05/1996"
-            end="05/1998"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            Perl
-          </Bar>
-
-          <Bar
-            start="05/1996"
-            end="05/1998"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            Watcom C
-          </Bar>
-
-          <Bar
-            start="05/1998"
-            end="05/2003"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            Visual Studio
-          </Bar>
-
-          <Bar
-            start="05/2001"
-            end="08/2005"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            Pascal To C
-          </Bar>
-
-          <Bar
-            start="05/2002"
-            end="08/2012"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            Apache HTTP Server
-          </Bar>
-
-          <Bar
-            start="05/2002"
-            end="08/2012"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            MySQL
-          </Bar>
-
-          <Bar
-            start="03/2002"
-            end="06/2014"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            PHP
-          </Bar>
-
-          <Bar
-            start="03/2006"
-            end="06/2025"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            JavaScript
-          </Bar>
-
-          <Bar
-            start="01/2018"
-            end="12/2022"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            Nginx
-          </Bar>
-
-          <Bar
-            start="01/2018"
-            end="12/2025"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            React
-          </Bar>
-
-          <Bar
-            start="08/2018"
-            end="06/2025"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            TypeScript
-          </Bar>
-
-          <Bar
-            start="03/2021"
-            end="06/2025"
-            range={{ start: props.startDate, end: props.endDate }}
-          >
-            GraphQL
-          </Bar>
+          {barData.map((bar) => (
+            <Bar
+              key={bar.id || `${bar.start}-${bar.end}-${bar.label}`}
+              start={bar.start}
+              end={bar.end}
+              color={bar.color}
+              backgroundColor={bar.backgroundColor}
+              textColor={bar.textColor}
+              range={{ start: props.startDate, end: props.endDate }}
+            >
+              {bar.label}
+            </Bar>
+          ))}
           <div
             className="time-slots"
             style={{ width: "100%", display: "flex", flexWrap: "nowrap" }}
