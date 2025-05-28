@@ -125,6 +125,122 @@ import { BarChart } from "flex-charts";
 <BarChart data={ChartData} options={ChartOptions} />;
 ```
 
+### DateRange
+
+The DateRange component provides a timeline visualization that can display bars representing time periods with custom colors and labels.
+
+```tsx
+import { DateRange, type BarData } from "flex-charts";
+
+// Define your data
+const timelineBars: BarData[] = [
+  {
+    id: 1,
+    start: "01/2020",
+    end: "12/2022",
+    label: "Project Alpha",
+    backgroundColor: "#3b82f6",
+    textColor: "white"
+  },
+  {
+    id: 2,
+    start: "06/2021",
+    end: "03/2024",
+    label: "Project Beta",
+    backgroundColor: "#ef4444",
+    textColor: "white"
+  }
+];
+
+function Timeline() {
+  return (
+    <DateRange
+      startDate="2020"
+      endDate="2025"
+      interval="Y"
+      width="800px"
+      labelFontSize="12px"
+      bars={timelineBars}
+      renderTitle={(time) => `'${time.value.toString().slice(2, 4)}`}
+    />
+  );
+}
+```
+
+#### DateRange Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `startDate` | `string` | Yes | Start date of the timeline (e.g., "2020", "01/2020") |
+| `endDate` | `string` | Yes | End date of the timeline (e.g., "2025", "12/2025") |
+| `interval` | `TTimeIntervalType` | Yes | Time interval type (`"Y"`, `"M"`, `"Q"`, `"W"`, `"D"`, `"H"`, `"m"`, `"s"`) |
+| `bars` | `BarData[]` | No | Array of bar data to display. If not provided, only time slots are shown |
+| `width` | `string` | No | Width of the component (default: "100%") |
+| `labelFontSize` | `string` | No | Font size for time slot labels (default: "12px") |
+| `renderTitle` | `(time: TTimeInterval) => string` | No | Custom function to render time slot labels |
+
+#### BarData Interface
+
+```tsx
+interface BarData {
+  id?: string | number;           // Optional unique identifier
+  start: string;                  // Start date/time string
+  end: string;                    // End date/time string
+  label: string;                  // Text to display on the bar
+  color?: string;                 // Border color (defaults to backgroundColor)
+  backgroundColor?: string;       // Background color (default: "#3b82f6")
+  textColor?: string;             // Text color (default: "white")
+}
+```
+
+#### Usage Examples
+
+**Basic Timeline (no bars, only time slots):**
+```tsx
+<DateRange
+  startDate="2020"
+  endDate="2025"
+  interval="Y"
+/>
+```
+
+**Project Timeline with Custom Colors:**
+```tsx
+const projectData: BarData[] = [
+  {
+    id: "planning",
+    start: "01/2024",
+    end: "03/2024",
+    label: "Planning Phase",
+    backgroundColor: "#fbbf24",
+    textColor: "#000"
+  },
+  {
+    id: "development",
+    start: "03/2024",
+    end: "10/2024",
+    label: "Development",
+    backgroundColor: "#22c55e"
+  },
+  {
+    id: "testing",
+    start: "09/2024",
+    end: "12/2024",
+    label: "Testing & QA",
+    backgroundColor: "#ef4444"
+  }
+];
+
+<DateRange
+  startDate="01/2024"
+  endDate="12/2024"
+  interval="M"
+  bars={projectData}
+  width="1000px"
+  renderTitle={(time) => time.value.toString().slice(0, 3)}
+/>
+```
+
 ### Theming
 
 ```tsx
