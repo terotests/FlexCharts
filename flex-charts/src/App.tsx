@@ -17,7 +17,7 @@ function App() {
     visible: { width: number; height: number } | null;
     total: { width: number; height: number } | null;
   } | null>(null);
-  const [scrollPosition, setScrollPosition] = useState(0);
+  const [_, setScrollPosition] = useState(0);
 
   // Custom bar data for the first TimeLineChart with colors
 
