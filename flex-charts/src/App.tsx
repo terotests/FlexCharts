@@ -1,6 +1,6 @@
 import { useChartTheme } from "./lib";
 import "./App.css";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 
 import { TimeLineChart } from "./lib/components/TimeLineChart";
 import { TimeLineChartController } from "./lib/controllers/TimeLineChartController";
@@ -9,6 +9,12 @@ import { customBars } from "./lib/data/customBars";
 function App() {
   const { theme, toggleTheme } = useChartTheme();
   const chartRef = useRef<TimeLineChartController>(null);
+  const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const [dimensions, setDimensions] = useState<{
+    visible: { width: number; height: number } | null;
+    total: { width: number; height: number } | null;
+  } | null>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   // Custom bar data for the first TimeLineChart with colors
 
@@ -21,22 +27,78 @@ function App() {
     }, 1000);
 
     return () => clearTimeout(timer);
+  }, []); // Bind to chart ref
+  useEffect(() => {
+    if (chartRef.current) {
+      // Example of subscribing to dimension changes
+      const unsubscribeDimensions = chartRef.current.onDimensionChange(
+        (newDimensions) => {
+          console.log("Dimensions changed:", newDimensions);
+          setDimensions(newDimensions);
+
+          // Show scroll buttons if total width is larger than visible width
+          const shouldShowButtons =
+            newDimensions.visible &&
+            newDimensions.total &&
+            newDimensions.total.width > newDimensions.visible.width;
+
+          setShowScrollButtons(!!shouldShowButtons);
+        }
+      );
+
+      // Subscribe to scroll position changes
+      const unsubscribeScroll = chartRef.current.onScrollPositionChange(
+        (position) => {
+          setScrollPosition(position);
+        }
+      );
+
+      // Cleanup subscriptions on unmount
+      return () => {
+        unsubscribeDimensions();
+        unsubscribeScroll();
+        console.log("Chart subscriptions cleaned up");
+      };
+    }
   }, []);
   const handleShowChartInfo = () => {
     if (chartRef.current) {
       const info = chartRef.current.getChartInfo();
+      const dimensionsText =
+        info.dimensions.visible && info.dimensions.total
+          ? `Visible: ${info.dimensions.visible.width.toFixed(
+              2
+            )}px × ${info.dimensions.visible.height.toFixed(2)}px
+Total: ${info.dimensions.total.width.toFixed(
+              2
+            )}px × ${info.dimensions.total.height.toFixed(2)}px`
+          : "Not available";
+
       alert(`Chart Controller Info:
 ID: ${info.chartId}
 Initialized: ${info.isInitialized}
 Bars Count: ${info.barCount}
 Date Range: ${info.startDate} - ${info.endDate}
-Dimensions: ${
-        info.dimensions
-          ? `${info.dimensions.width.toFixed(
-              2
-            )}px × ${info.dimensions.height.toFixed(2)}px`
-          : "Not available"
-      }`);
+Dimensions:
+${dimensionsText}`);
+    }
+  };
+
+  const handleScrollToStart = () => {
+    if (chartRef.current) {
+      chartRef.current.scrollToStart();
+    }
+  };
+
+  const handleScrollToEnd = () => {
+    if (chartRef.current) {
+      chartRef.current.scrollToEnd();
+    }
+  };
+
+  const handleScrollToCenter = () => {
+    if (chartRef.current) {
+      chartRef.current.scrollToCenter();
     }
   };
 
@@ -52,7 +114,7 @@ Dimensions: ${
       {" "}
       <header>
         <h1>FlexCharts Demo</h1>
-        <div className="controls">
+        <div className="controls" style={{ display: "none" }}>
           <button onClick={toggleTheme}>
             Switch to {theme.mode === "light" ? "Dark" : "Light"} Mode
           </button>
@@ -60,6 +122,54 @@ Dimensions: ${
             Show Chart Info
           </button>
         </div>
+        {showScrollButtons && dimensions && (
+          <div
+            className="scroll-controls"
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+            }}
+          >
+            <button
+              onClick={handleScrollToStart}
+              style={{
+                padding: "8px 12px",
+                fontSize: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              ← Start
+            </button>
+            <button
+              onClick={handleScrollToCenter}
+              style={{
+                padding: "8px 12px",
+                fontSize: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              ↔ Center
+            </button>
+            <button
+              onClick={handleScrollToEnd}
+              style={{
+                padding: "8px 12px",
+                fontSize: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              End →
+            </button>
+          </div>
+        )}
       </header>
       <main>
         {" "}

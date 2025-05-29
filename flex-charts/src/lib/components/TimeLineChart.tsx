@@ -4,6 +4,7 @@ import {
   useRef,
   forwardRef,
   useImperativeHandle,
+  useState,
 } from "react";
 import {
   calculateTimeSlot,
@@ -41,9 +42,19 @@ const TimeLineBar = (props: {
     start: string;
     end: string;
   };
+  onBarElementRef?: (id: string | number, element: HTMLElement | null) => void;
 }) => {
-  const { id, start, end, label, range, color, backgroundColor, textColor } =
-    props;
+  const {
+    id,
+    start,
+    end,
+    label,
+    range,
+    color,
+    backgroundColor,
+    textColor,
+    onBarElementRef,
+  } = props;
 
   const startTime = useMemo(() => parseTimeString(start), [start]);
   const endTime = useMemo(() => parseTimeString(end), [end]);
@@ -77,6 +88,11 @@ const TimeLineBar = (props: {
       {" "}
       <div
         className="bar"
+        ref={(element) => {
+          if (onBarElementRef && id !== undefined) {
+            onBarElementRef(id, element);
+          }
+        }}
         data-test-id={`bar-${id}`}
         tabIndex={0}
         title={label}
@@ -121,11 +137,16 @@ export const TimeLineChart = forwardRef<
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
 
+  // Scroll state management
+  const [scrollPosition, setScrollPosition] = useState(0);
+
   // Create controller instance
   const controllerRef = useRef<TimeLineChartController>(
     new TimeLineChartController()
   );
   const chartElementRef = useRef<HTMLDivElement>(null);
+  const containerElementRef = useRef<HTMLDivElement>(null);
+  const timeSlotElementsRef = useRef<HTMLElement[]>([]);
 
   // Use provided bars or empty array if no bars provided
   const barData = bars || [];
@@ -140,6 +161,32 @@ export const TimeLineChart = forwardRef<
     );
   }, [start, end, interval]);
 
+  // Handle bar element references
+  const handleBarElementRef = (
+    id: string | number,
+    element: HTMLElement | null
+  ) => {
+    const controller = controllerRef.current;
+    if (element) {
+      controller.addBarElement(id, element);
+    } else {
+      controller.removeBarElement(id);
+    }
+  };
+
+  // Handle time slot element references
+  const handleTimeSlotElementRef = (
+    index: number,
+    element: HTMLElement | null
+  ) => {
+    if (element) {
+      timeSlotElementsRef.current[index] = element;
+      // Update controller with current time slot elements
+      controllerRef.current.updateTimeSlotElements(
+        timeSlotElementsRef.current.filter(Boolean)
+      );
+    }
+  };
   // Initialize controller when component mounts or data changes
   useEffect(() => {
     const controller = controllerRef.current;
@@ -149,14 +196,57 @@ export const TimeLineChart = forwardRef<
       barData.length,
       chartElementRef.current
     );
-  }, [startDate, endDate, barData.length]);
 
+    // Register scroll callback
+    controller.setScrollToCallback((position: number) => {
+      setScrollPosition(position);
+    });
+  }, [startDate, endDate, barData.length]);
   // Update element reference when DOM changes
   useEffect(() => {
     if (chartElementRef.current) {
       controllerRef.current.updateElement(chartElementRef.current);
     }
   });
+
+  // Update container element reference when DOM changes
+  useEffect(() => {
+    if (containerElementRef.current) {
+      controllerRef.current.updateContainerElement(containerElementRef.current);
+    }
+  });
+  // Apply scroll position effect
+  useEffect(() => {
+    if (containerElementRef.current && scrollPosition !== null) {
+      /*
+      const container = containerElementRef.current;
+      const maxScrollLeft = container.scrollWidth - container.clientWidth;
+      const targetScrollLeft = maxScrollLeft * scrollPosition;
+      container.scrollLeft = targetScrollLeft;
+      */
+
+      const dimensions = controllerRef.current.getDimensions();
+
+      if (!dimensions.total?.width || !dimensions.visible?.width) {
+        return;
+      }
+
+      const scrollableArea =
+        (dimensions.total?.width || 0) - (dimensions.visible?.width || 0);
+      containerElementRef.current.scrollLeft = scrollableArea * scrollPosition;
+
+      console.log(
+        "Scroll ",
+        dimensions,
+        scrollableArea,
+        scrollPosition,
+        scrollableArea * scrollPosition
+      );
+
+      // Notify controller of scroll position change
+      controllerRef.current.notifyScrollPositionChange(scrollPosition);
+    }
+  }, [scrollPosition, controllerRef]);
 
   // Expose controller to parent component via ref
   useImperativeHandle(ref, () => controllerRef.current, []);
@@ -184,10 +274,13 @@ export const TimeLineChart = forwardRef<
           flexDirection: "column",
           overflow: "hidden",
           width: "100%",
+          scrollBehavior: "smooth",
         }}
+        ref={containerElementRef}
       >
         {" "}
         <div
+          data-testid="timeline-chart-container"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -195,6 +288,7 @@ export const TimeLineChart = forwardRef<
             gap: "6px",
             position: "relative",
             overflow: "hidden",
+            minWidth: "100%",
           }}
         >
           {" "}
@@ -209,18 +303,24 @@ export const TimeLineChart = forwardRef<
               backgroundColor={bar.backgroundColor}
               textColor={bar.textColor}
               range={{ start: props.startDate, end: props.endDate }}
+              onBarElementRef={handleBarElementRef}
             >
               {bar.label}
             </TimeLineBar>
-          ))}
+          ))}{" "}
           <div
             className="time-slots"
-            style={{ width: "100%", display: "flex", flexWrap: "nowrap" }}
+            style={{
+              width: "100%",
+              display: "flex",
+              flexWrap: "nowrap",
+            }}
           >
             {" "}
             {slots.map((slot, index) => (
               <div
                 className="time-slot"
+                ref={(element) => handleTimeSlotElementRef(index, element)}
                 data-test-id={`time-slot-${index}`}
                 key={index}
                 style={{
