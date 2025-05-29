@@ -17,7 +17,7 @@ export const customBars: TimeLineBarData[] = [
   },
   {
     id: 3,
-    start: "05/1994",
+    start: "01/1994",
     end: "05/1999",
     label: "x86 Asm (TASM)",
     backgroundColor: "#45b7d1",

@@ -17,7 +17,7 @@ function App() {
     visible: { width: number; height: number } | null;
     total: { width: number; height: number } | null;
   } | null>(null);
-  const [_, setScrollPosition] = useState(0);
+  const [_, setCurrentScrollPosition] = useState(0);
 
   // Custom bar data for the first TimeLineChart with colors
 
@@ -52,7 +52,7 @@ function App() {
       // Subscribe to scroll position changes
       const unsubscribeScroll = chartRef.current.onScrollPositionChange(
         (position) => {
-          setScrollPosition(position);
+          setCurrentScrollPosition(position);
         }
       );
 
@@ -103,7 +103,6 @@ ${dimensionsText}`);
       chartRef.current.scrollToCenter();
     }
   };
-
   const handleBarClick = (clickData: BarClickData) => {
     const { bar, relativePosition, dimensions, controller } = clickData;
 

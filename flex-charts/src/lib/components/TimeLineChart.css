@@ -9,6 +9,20 @@
   --slot-bg: #e3e8f0;
   --slot-text: #4e79a7;
   --slot-border: #b0b8c9;
+    /* Grid line variables */
+  --grid-line-color: rgba(176, 184, 201, 0.3);
+  --grid-line-width: 1px;
+  --grid-line-style: solid;
+  --grid-background: transparent;
+  --grid-hover-color: rgba(78, 121, 167, 0.2);
+  
+  /* Scrollbar variables */
+  --scrollbar-track-color: rgba(228, 230, 235, 0.3);
+  --scrollbar-thumb-color: rgba(78, 121, 167, 0.4);
+  --scrollbar-thumb-hover-color: rgba(78, 121, 167, 0.6);
+  --scrollbar-thumb-active-color: rgba(78, 121, 167, 0.8);
+  --scrollbar-size: 8px;
+  --scrollbar-border-radius: 4px;
 }
 
 .time-slots {
@@ -37,6 +51,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .bar:hover, .bar:focus {
@@ -73,4 +89,68 @@
   color: #fff;
   border-color: var(--bar-hover-border);
   outline: none;
+}
+
+/* Grid lines styling */
+.time-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: row;
+  z-index: 0;
+}
+
+.time-grid-line {
+  flex: 1;
+  border-right: var(--grid-line-width) var(--grid-line-style) var(--grid-line-color);
+  background: var(--grid-background);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.time-grid-line:last-child {
+  border-right: none;
+}
+
+.time-grid-line:hover {
+  background: var(--grid-hover-color);
+  border-color: var(--grid-line-color);
+}
+
+/* Custom scrollbar styling for timeline chart scroll container */
+.timeline-chart-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.timeline-chart-scroll-container::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+.timeline-chart-scroll-container::-webkit-scrollbar-track {
+  background: var(--scrollbar-track-color);
+  border-radius: var(--scrollbar-border-radius);
+  margin: 2px;
+}
+
+.timeline-chart-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-color);
+  border-radius: var(--scrollbar-border-radius);
+  transition: background 0.2s ease-in-out;
+}
+
+.timeline-chart-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover-color);
+}
+
+.timeline-chart-scroll-container::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active-color);
+}
+
+.timeline-chart-scroll-container::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track-color);
 }

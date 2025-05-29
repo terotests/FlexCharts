@@ -169,6 +169,7 @@ const TimeLineBar = (props: {
         width: "100%",
         height: "20px",
         position: "relative",
+        pointerEvents: "none", // Prevent pointer events on the container
       }}
     >
       {" "}
@@ -201,6 +202,7 @@ const TimeLineBar = (props: {
           color: textColor || "white",
           border: `1px solid ${color || backgroundColor || "#3b82f6"}`,
           cursor: onBarClick ? "pointer" : "default",
+          pointerEvents: onBarClick ? "auto" : "none", // Enable pointer events only if onBarClick is provided
         }}
       >
         {props.children}
@@ -228,12 +230,12 @@ export const TimeLineChart = forwardRef<
 
   // Scroll state management
   const [scrollPosition, setScrollPosition] = useState(0);
-
   // Create controller instance
   const controllerRef = useRef<TimeLineChartController>(
     new TimeLineChartController()
   );
   const chartElementRef = useRef<HTMLDivElement>(null);
+
   const containerElementRef = useRef<HTMLDivElement>(null);
   const timeSlotElementsRef = useRef<HTMLElement[]>([]);
 
@@ -355,17 +357,21 @@ export const TimeLineChart = forwardRef<
       className="timeline-chart"
       data-test-id="timeline-chart"
     >
+      {" "}
       <div
         style={{
           display: "flex",
           alignItems: "flex-start",
           gap: "0px",
           flexDirection: "column",
-          overflow: "hidden",
+          overflow: "auto",
           width: "100%",
           scrollBehavior: "smooth",
         }}
-        ref={containerElementRef}
+        className="timeline-chart-scroll-container"
+        ref={(el) => {
+          containerElementRef.current = el;
+        }}
       >
         {" "}
         <div
@@ -380,7 +386,16 @@ export const TimeLineChart = forwardRef<
             minWidth: "100%",
           }}
         >
-          {" "}
+          {/* Grid lines container */}
+          <div className="time-grid">
+            {slots.map((_, index) => (
+              <div
+                key={`grid-${index}`}
+                className="time-grid-line"
+                data-test-id={`grid-line-${index}`}
+              />
+            ))}
+          </div>{" "}
           {barData.map((bar) => (
             <TimeLineBar
               key={bar.id || `${bar.start}-${bar.end}-${bar.label}`}
