@@ -23,6 +23,16 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Allow CSS imports
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        ignoreRestSiblings: true
+      }],
     },
+    settings: {
+      // Tell ESLint to ignore CSS imports
+      'import/ignore': ['\\.css$']
+    }
   },
 )
