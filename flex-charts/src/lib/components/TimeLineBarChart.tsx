@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-import { parseTimeString } from "../time";
+// filepath: c:\Users\terok\proj\FlexCharts\flex-charts\src\lib\components\TimeLineBarChart.tsx
 
 interface BarChartData {
   labels: string[];
@@ -13,36 +12,6 @@ interface BarChartData {
   }[];
 }
 
-export const exampleDataSet: BarChartData = {
-  labels: ["January", "February", "March", "April", "May", "June"],
-  datasets: [
-    {
-      label: "Dataset 1",
-      interval: {
-        start: "2024-01-01",
-        end: "2024-01-31",
-      },
-      backgroundColor: "#FF6384",
-    },
-    {
-      label: "Dataset 2",
-      interval: {
-        start: "2024-02-01",
-        end: "2024-02-28",
-      },
-      backgroundColor: "#36A2EB",
-    },
-    {
-      label: "Dataset 3",
-      interval: {
-        start: "2024-03-01",
-        end: "2024-03-31",
-      },
-      backgroundColor: "#FFCE56",
-    },
-  ],
-};
-
 /**
  * BarChart component for rendering bar charts
  *
@@ -50,7 +19,7 @@ export const exampleDataSet: BarChartData = {
  * @param options - Optional configuration for the chart
  * @returns A bar chart component
  */
-export const TimeLineBarChart = (props: {
+const TimeLineBarChart = (props: {
   data: BarChartData;
   options?: {
     width?: number;
@@ -102,3 +71,5 @@ export const TimeLineBarChart = (props: {
     </div>
   );
 };
+
+export { TimeLineBarChart };
