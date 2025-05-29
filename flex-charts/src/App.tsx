@@ -143,7 +143,7 @@ function App() {
             startDate="1992"
             endDate="12/2025"
             interval="Y"
-            width="1000px"
+            width="100%"
             labelFontSize="10px"
             key="1"
             bars={customBars}
