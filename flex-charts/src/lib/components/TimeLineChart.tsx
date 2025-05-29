@@ -45,6 +45,28 @@ export interface BarClickData {
   event: React.MouseEvent<HTMLDivElement>;
 }
 
+// Type definitions for mouse hover events
+export interface ChartHoverData {
+  // Mouse position relative to chart (0-1, where 0 is start of chart, 1 is end)
+  relativePosition: number;
+  // Pixel position within the chart container
+  pixelPosition: {
+    x: number;
+    y: number;
+  };
+  // Active time slot information at the hover position
+  activeTimeSlot: {
+    index: number; // Index of the time slot
+    value: string; // Time slot value (e.g., "2020", "Jan", etc.)
+    start: number; // Start position of time slot (0-1)
+    end: number; // End position of time slot (0-1)
+  } | null;
+  // Chart controller reference
+  controller: TimeLineChartController;
+  // Original mouse event
+  event: React.MouseEvent<HTMLDivElement>;
+}
+
 // Type definitions for the bar data
 export interface TimeLineBarData {
   id?: string | number;
@@ -222,9 +244,11 @@ export const TimeLineChart = forwardRef<
     interval: TTimeIntervalType;
     bars?: TimeLineBarData[];
     onBarClick?: (clickData: BarClickData) => void;
+    onChartHover?: (hoverData: ChartHoverData) => void;
   }
 >((props, ref) => {
-  const { startDate, endDate, interval, bars, onBarClick } = props;
+  const { startDate, endDate, interval, bars, onBarClick, onChartHover } =
+    props;
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
 
@@ -338,9 +362,57 @@ export const TimeLineChart = forwardRef<
       controllerRef.current.notifyScrollPositionChange(scrollPosition);
     }
   }, [scrollPosition, controllerRef]);
-
   // Expose controller to parent component via ref
   useImperativeHandle(ref, () => controllerRef.current, []);
+
+  // Handle mouse hover over chart
+  const handleChartHover = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!onChartHover || !containerElementRef.current) return;
+    const containerRect = containerElementRef.current.getBoundingClientRect();
+    const relativeX = event.clientX - containerRect.left;
+    const relativeY = event.clientY - containerRect.top;
+
+    // Get dimensions from controller to account for total chart width
+    const dimensions = controllerRef.current.getDimensions();
+    const scrollLeft = containerElementRef.current.scrollLeft;
+
+    // Calculate relative position based on total chart width, not just visible width
+    let relativePosition = 0;
+    if (dimensions.total?.width && dimensions.visible?.width) {
+      // Account for scroll position and total width
+      const totalWidth = dimensions.total.width;
+      const absoluteX = scrollLeft + relativeX;
+      relativePosition = absoluteX / totalWidth;
+    } else {
+      // Fallback to basic calculation if dimensions not available
+      relativePosition = relativeX / containerRect.width;
+    }
+    // Find active time slot at this position
+    const activeTimeSlotIndex = Math.floor(relativePosition * slots.length);
+    const activeTimeSlot =
+      activeTimeSlotIndex >= 0 && activeTimeSlotIndex < slots.length
+        ? {
+            index: activeTimeSlotIndex,
+            value: slots[activeTimeSlotIndex].value.toString(),
+            start: activeTimeSlotIndex / slots.length,
+            end: (activeTimeSlotIndex + 1) / slots.length,
+          }
+        : null;
+
+    // Create hover data
+    const hoverData: ChartHoverData = {
+      relativePosition: Math.max(0, Math.min(1, relativePosition)),
+      pixelPosition: {
+        x: relativeX,
+        y: relativeY,
+      },
+      activeTimeSlot,
+      controller: controllerRef.current,
+      event,
+    };
+
+    onChartHover(hoverData);
+  };
 
   // Here you can implement the logic to display the date range
   // based on the provided startDate, endDate, and interval.
@@ -376,6 +448,7 @@ export const TimeLineChart = forwardRef<
         {" "}
         <div
           data-testid="timeline-chart-container"
+          onMouseMove={handleChartHover}
           style={{
             display: "flex",
             flexDirection: "column",
