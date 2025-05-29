@@ -251,9 +251,14 @@ export const TimeLineChart = forwardRef<
     props;
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
-
   // Scroll state management
   const [scrollPosition, setScrollPosition] = useState(0);
+  // Time slots visibility state
+  const [chartBottomY, setChartBottomY] = useState(0);
+  const [windowScrollY, setWindowScrollY] = useState(0);
+  const [windowHeight, setWindowHeight] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(1);
+
   // Create controller instance
   const controllerRef = useRef<TimeLineChartController>(
     new TimeLineChartController()
@@ -361,7 +366,81 @@ export const TimeLineChart = forwardRef<
       // Notify controller of scroll position change
       controllerRef.current.notifyScrollPositionChange(scrollPosition);
     }
-  }, [scrollPosition, controllerRef]);
+  }, [scrollPosition, controllerRef]); // Track chart position and window scroll for time slots visibility
+  useEffect(() => {
+    const updateChartPosition = () => {
+      if (chartElementRef.current) {
+        const rect = chartElementRef.current.getBoundingClientRect();
+        setChartBottomY(rect.bottom);
+      }
+    };
+    const updateWindowScroll = () => {
+      setWindowScrollY(window.scrollY);
+      setWindowHeight(window.innerHeight);
+      // Detect zoom level using visual viewport and device pixel ratio
+      const zoomFactor = window.visualViewport
+        ? window.visualViewport.scale
+        : window.devicePixelRatio || 1;
+      setZoomLevel(zoomFactor);
+    }; // Initial measurements
+    updateChartPosition();
+    updateWindowScroll();
+
+    // Add event listeners
+    window.addEventListener("scroll", updateWindowScroll);
+    window.addEventListener("resize", updateWindowScroll);
+
+    // Listen for zoom changes via visual viewport API
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", updateWindowScroll);
+    }
+
+    // Use ResizeObserver to track chart position changes
+    const resizeObserver = new ResizeObserver(updateChartPosition);
+    if (chartElementRef.current) {
+      resizeObserver.observe(chartElementRef.current);
+    }
+    return () => {
+      window.removeEventListener("scroll", updateWindowScroll);
+      window.removeEventListener("resize", updateWindowScroll);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", updateWindowScroll);
+      }
+      resizeObserver.disconnect();
+    };
+  }, []); // Calculate translateY for time slots to keep them visible
+  const calculateTimeSlotsTransform = () => {
+    // If chart bottom is below the viewport, move time slots up to keep them visible
+    // Account for browser zoom level in calculations
+    const effectiveWindowHeight = windowHeight / zoomLevel;
+    const effectiveScrollY = windowScrollY / zoomLevel;
+    const effectiveChartBottomY = chartBottomY / zoomLevel;
+
+    const viewportBottom = effectiveScrollY + effectiveWindowHeight;
+    const chartOverflowBelow = effectiveChartBottomY - viewportBottom;
+
+    if (chartOverflowBelow > 0) {
+      // Chart extends below viewport, move time slots up by the overflow amount
+      // Apply zoom factor to the transform as well
+      const transformAmount = (chartOverflowBelow + 20) * zoomLevel;
+      return `translateY(-${transformAmount}px)`; // Add 20px padding
+    }
+
+    return "translateY(0px)";
+  };
+
+  // Check if time slots need to be transformed (moved up)
+  const isTimeSlotsTransformed = () => {
+    // Account for browser zoom level in calculations
+    const effectiveWindowHeight = windowHeight / zoomLevel;
+    const effectiveScrollY = windowScrollY / zoomLevel;
+    const effectiveChartBottomY = chartBottomY / zoomLevel;
+
+    const viewportBottom = effectiveScrollY + effectiveWindowHeight;
+    const chartOverflowBelow = effectiveChartBottomY - viewportBottom;
+    return chartOverflowBelow > 0;
+  };
+
   // Expose controller to parent component via ref
   useImperativeHandle(ref, () => controllerRef.current, []);
 
@@ -489,11 +568,17 @@ export const TimeLineChart = forwardRef<
             </TimeLineBar>
           ))}{" "}
           <div
-            className="time-slots"
+            className={`time-slots ${
+              isTimeSlotsTransformed() ? "time-slots-transformed" : ""
+            }`}
             style={{
               width: "100%",
               display: "flex",
               flexWrap: "nowrap",
+              transform: calculateTimeSlotsTransform(),
+              zIndex: isTimeSlotsTransformed() ? 1000 : "auto",
+              pointerEvents: isTimeSlotsTransformed() ? "none" : "auto",
+              position: "relative",
             }}
           >
             {" "}

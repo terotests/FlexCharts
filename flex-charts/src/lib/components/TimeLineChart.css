@@ -15,14 +15,16 @@
   --grid-line-style: solid;
   --grid-background: transparent;
   --grid-hover-color: rgba(78, 121, 167, 0.2);
-  
-  /* Scrollbar variables */
+    /* Scrollbar variables */
   --scrollbar-track-color: rgba(228, 230, 235, 0.3);
   --scrollbar-thumb-color: rgba(78, 121, 167, 0.4);
   --scrollbar-thumb-hover-color: rgba(78, 121, 167, 0.6);
   --scrollbar-thumb-active-color: rgba(78, 121, 167, 0.8);
   --scrollbar-size: 8px;
   --scrollbar-border-radius: 4px;
+  
+  /* Time slots transparency when transformed */
+  --timeslots-transformed-opacity: 0.9;
 }
 
 .time-slots {
@@ -89,6 +91,16 @@
   color: #fff;
   border-color: var(--bar-hover-border);
   outline: none;
+}
+
+/* Time slots when transformed (moved up for visibility) */
+.time-slots-transformed {
+  opacity: var(--timeslots-transformed-opacity);
+}
+
+.time-slots-transformed .time-slot {
+  opacity: var(--timeslots-transformed-opacity);
+  backdrop-filter: blur(3px);
 }
 
 /* Grid lines styling */
