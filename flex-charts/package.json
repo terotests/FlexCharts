@@ -1,5 +1,5 @@
 {
-  "name": "flex-charts",
+  "name": "@terotests/flex-charts",
   "version": "0.1.0",
   "description": "A flexible chart library for React applications",
   "type": "module",

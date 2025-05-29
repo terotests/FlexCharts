@@ -77,7 +77,6 @@ try {
   };
   writeFileSync("dist_lib/package.json", JSON.stringify(distPackage, null, 2));
   console.log("✅ Created clean distribution package.json");
-
   // Create NPM-specific README
   const npmReadme = `# FlexCharts
 
@@ -86,11 +85,11 @@ A flexible chart library for React applications focused on time-based visualizat
 ## Installation
 
 \`\`\`bash
-npm install flex-charts
+npm install @terotests/flex-charts
 # or
-yarn add flex-charts
+yarn add @terotests/flex-charts
 # or
-pnpm add flex-charts
+pnpm add @terotests/flex-charts
 \`\`\`
 
 ## Important: CSS Import
@@ -101,7 +100,7 @@ pnpm add flex-charts
 
 \`\`\`javascript
 // In your main index.js, App.js, or entry point
-import 'flex-charts/TimeLineChart.css';
+import '@terotests/flex-charts/TimeLineChart.css';
 \`\`\`
 
 ### Option 2: CSS is automatically imported when you import components
@@ -112,7 +111,7 @@ The CSS is automatically imported when you import any FlexCharts components, but
 
 \`\`\`tsx
 import React from 'react';
-import { TimeLineChart, type TimeLineBarData } from 'flex-charts';
+import { TimeLineChart, type TimeLineBarData } from '@terotests/flex-charts';
 
 const timelineBars: TimeLineBarData[] = [
   {

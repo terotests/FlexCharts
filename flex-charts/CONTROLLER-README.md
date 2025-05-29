@@ -39,7 +39,7 @@ The enhanced TimeLineChart now includes a comprehensive controller system that p
 
 ```tsx
 import { useRef, useEffect } from "react";
-import { TimeLineChart, TimeLineChartController } from "flex-charts";
+import { TimeLineChart, TimeLineChartController } from "@terotests/flex-charts";
 
 function MyChart() {
   const chartRef = useRef<TimeLineChartController>(null);
