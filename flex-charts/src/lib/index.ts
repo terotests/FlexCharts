@@ -5,6 +5,9 @@
  * All components and utilities should be exported from here.
  */
 
+// Styles - Import the CSS file so users can access it
+import "./components/TimeLineChart.css";
+
 // Components
 export { LineChart } from "./components/LineChart";
 export {

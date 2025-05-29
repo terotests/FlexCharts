@@ -1,0 +1,124 @@
+name: Publish to NPM
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "Version type to bump"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: "patch"
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: |
+          cd flex-charts
+          npm ci
+
+      - name: Run linting
+        run: |
+          cd flex-charts
+          npm run lint
+
+      - name: Run tests
+        run: |
+          cd flex-charts
+          npm test
+
+      - name: Build package
+        run: |
+          cd flex-charts
+          npm run build
+
+      - name: Verify build output
+        run: |
+          cd flex-charts
+          echo "=== Build output verification ==="
+          ls -la dist_lib/
+          echo "=== Checking for required files ==="
+          test -f dist_lib/index.js || (echo "❌ Missing dist_lib/index.js" && exit 1)
+          test -f dist_lib/index.cjs || (echo "❌ Missing dist_lib/index.cjs" && exit 1)
+          test -f dist_lib/types/index.d.ts || (echo "❌ Missing dist_lib/types/index.d.ts" && exit 1)
+          test -f dist_lib/TimeLineChart.css || (echo "❌ Missing dist_lib/TimeLineChart.css" && exit 1)
+          test -f dist_lib/package.json || (echo "❌ Missing dist_lib/package.json" && exit 1)
+          test -f dist_lib/README.md || (echo "❌ Missing dist_lib/README.md" && exit 1)
+          echo "✅ All required files present"
+          echo "=== Verifying dist_lib/package.json content ==="
+          cat dist_lib/package.json | jq '.devDependencies // empty' | grep -q "null\|{}" || (echo "❌ devDependencies found in dist_lib/package.json" && exit 1)
+          echo "✅ dist_lib/package.json is clean (no devDependencies)"
+
+      - name: Bump version (manual workflow only)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          cd flex-charts
+          # Update version in source package.json
+          npm version ${{ github.event.inputs.version_type }} --no-git-tag-version
+          # Rebuild to update dist_lib/package.json with new version
+          npm run build
+
+      - name: Extract version from tag (tag workflow only)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cd flex-charts
+          VERSION=${GITHUB_REF#refs/tags/v}
+          # Update version in source package.json
+          npm version $VERSION --no-git-tag-version
+          # Rebuild to update dist_lib/package.json with new version
+          npm run build
+
+      - name: Publish to NPM (dry run first)
+        run: |
+          cd flex-charts/dist_lib
+          echo "=== Dry run publish from dist_lib folder ==="
+          npm publish --dry-run --access public
+          echo "=== Package contents that would be published ==="
+          npm pack --dry-run
+
+      - name: Publish to NPM
+        run: |
+          cd flex-charts/dist_lib
+          echo "=== Publishing from dist_lib folder ==="
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Get published version
+        id: version
+        run: |
+          cd flex-charts/dist_lib
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release (manual workflow only)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release v${{ steps.version.outputs.version }}
+          body: |
+            Changes in this Release
+            - Built and published to NPM
+          draft: false
+          prerelease: false
