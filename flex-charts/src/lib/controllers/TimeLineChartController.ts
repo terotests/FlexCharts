@@ -272,7 +272,6 @@ export class TimeLineChartController {
   getTimeSlotElements(): HTMLElement[] {
     return [...this._timeSlotElements];
   }
-
   /**
    * Add a callback for dimension changes
    */
@@ -283,6 +282,14 @@ export class TimeLineChartController {
     }) => void
   ): () => void {
     this._dimensionChangeCallbacks.push(callback);
+
+    // Immediately fire the callback with current dimensions
+    try {
+      const currentDimensions = this.getDimensions();
+      callback(currentDimensions);
+    } catch (error) {
+      console.warn("Error in initial dimension change callback:", error);
+    }
 
     // Return unsubscribe function
     return () => {

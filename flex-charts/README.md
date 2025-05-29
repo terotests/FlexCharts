@@ -1,43 +1,10 @@
-# FlexCharts
+# FlexCharts - Technical Documentation
 
 > **⚠️ WORK IN PROGRESS**
 >
 > This library is currently under active development. The documentation below is a draft and describes planned functionality that may not be fully implemented yet. Features, APIs, and examples are subject to change.
 
-A flexible chart library for React applications focused on time-based visualizations with advanced customization capabilities.
-
-## Planned Features
-
-### Core Functionality
-
-- 📐 **Flexible Layout System** - Adaptive wireframe structure with proper data positioning
-- 🔄 **Smooth Scrolling** - Horizontal and vertical scrolling with touch support
-- 📏 **Configurable Axes** - Customizable x and y axis with support for various data types
-- 📊 **Multiple Chart Types** - Line, Bar, Timeline, and more to come
-
-### Advanced Capabilities
-
-- 🧩 **Gantt Chart Support** - Connect time series elements to create dependencies
-- ✏️ **Live Editing** - Real-time chart modification and data manipulation
-- 📤 **Data Export** - Export to Excel, CSV and other formats
-- 🎛️ **Live Configuration** - Adjust chart settings and appearance in real-time
-
-### User Experience
-
-- 🎨 **Theming & Customization** - Light/dark mode and custom rendering overrides
-- 🚀 **Performance Optimization** - Virtualization for large datasets and view optimization
-- 📱 **Responsive Design** - Adapt to different screen sizes and orientations
-- 🎯 **Full TypeScript Support** - Complete type definitions for enhanced developer experience
-
-## Installation
-
-```bash
-npm install flex-charts
-# or
-yarn add flex-charts
-# or
-pnpm add flex-charts
-```
+This is the technical documentation for the FlexCharts library development. For usage documentation, see the [main README](../README.md).
 
 ## 🌐 Live Demo
 
@@ -75,43 +42,7 @@ npm run build:playground
 npm run preview
 ```
 
-## Planned Usage
-
-> **Note:** The examples below illustrate the intended API, which is still under development.
-
-````jsx
-import { LineChart } from 'flex-charts';
-
-function App() {
-  const data = {
-    labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-    datasets: [
-      {
-        label: 'Dataset 1',
-        data: [65, 59, 80, 81, 56, 55],
-        color: '#4e79a7',
-      },
-      {
-        label: 'Dataset 2',
-        data: [28, 48, 40, 19, 86, 27],
-        color: '#f28e2c',
-      },
-    ],
-  };
-
-  return (
-    <LineChart
-      data={data}
-      options={{
-        width: 600,
-        height: 400,
-        title: 'My Chart'
-      }}
-    />
-  );
-}
-
-## Development
+## Development Setup
 
 This package uses a dual setup:
 
@@ -144,25 +75,9 @@ npm run lint
 
 # Fix linting issues
 npm run lint:fix
-````
+```
 
 ## API Reference
-
-### LineChart
-
-```tsx
-import { LineChart } from "flex-charts";
-
-<LineChart data={ChartData} options={ChartOptions} />;
-```
-
-### BarChart
-
-```tsx
-import { BarChart } from "flex-charts";
-
-<BarChart data={ChartData} options={ChartOptions} />;
-```
 
 ### TimeLineChart
 
@@ -171,53 +86,28 @@ The TimeLineChart component provides a timeline visualization that can display b
 ```tsx
 import { TimeLineChart, type TimeLineBarData } from "flex-charts";
 
-// Define your data
-const timelineBars: TimeLineBarData[] = [
-  {
-    id: 1,
-    start: "01/2020",
-    end: "12/2022",
-    label: "Project Alpha",
-    backgroundColor: "#3b82f6",
-    textColor: "white",
-  },
-  {
-    id: 2,
-    start: "06/2021",
-    end: "03/2024",
-    label: "Project Beta",
-    backgroundColor: "#ef4444",
-    textColor: "white",
-  },
-];
-
-function Timeline() {
-  return (
-    <TimeLineChart
-      startDate="2020"
-      endDate="2025"
-      interval="Y"
-      width="800px"
-      labelFontSize="12px"
-      bars={timelineBars}
-      renderTitle={(time) => `'${time.value.toString().slice(2, 4)}`}
-    />
-  );
-}
+<TimeLineChart
+  startDate="2020"
+  endDate="2025"
+  interval="Y"
+  bars={timelineBars}
+  onBarClick={handleBarClick}
+/>;
 ```
 
 #### TimeLineChart Props
 
-| Prop            | Type                                | Required | Description                                                                                                                                          |
-| --------------- | ----------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `startDate`     | `string`                            | Yes      | Start date of the timeline (e.g., "2020", "01/2020")                                                                                                 |
-| `endDate`       | `string`                            | Yes      | End date of the timeline (e.g., "2025", "12/2025")                                                                                                   |
-| `interval`      | `TTimeIntervalType`                 | Yes      | Time interval type (`"Y"`, `"M"`, `"Q"`, `"W"`, `"D"`, `"H"`, `"m"`, `"s"`)                                                                          |
-| `bars`          | `TimeLineBarData[]`                 | No       | Array of bar data to display. If not provided, only time slots are shown                                                                             |
-| `width`         | `string`                            | No       | Width of the component (default: "100%")                                                                                                             |
-| `labelFontSize` | `string`                            | No       | Font size for time slot labels (default: "12px")                                                                                                     |
-| `renderTitle`   | `(time: TTimeInterval) => string`   | No       | Custom function to render time slot labels                                                                                                           |
-| `onBarClick`    | `(clickData: BarClickData) => void` | No       | Callback function called when a bar is clicked. Receives comprehensive click data including bar info, position, dimensions, and controller reference |
+| Prop            | Type                                  | Required | Description                                                                                                                                          |
+| --------------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `startDate`     | `string`                              | Yes      | Start date of the timeline (e.g., "2020", "01/2020")                                                                                                 |
+| `endDate`       | `string`                              | Yes      | End date of the timeline (e.g., "2025", "12/2025")                                                                                                   |
+| `interval`      | `TTimeIntervalType`                   | Yes      | Time interval type (`"Y"`, `"M"`, `"Q"`, `"W"`, `"D"`, `"H"`, `"m"`, `"s"`)                                                                          |
+| `bars`          | `TimeLineBarData[]`                   | No       | Array of bar data to display. If not provided, only time slots are shown                                                                             |
+| `width`         | `string`                              | No       | Width of the component (default: "100%")                                                                                                             |
+| `labelFontSize` | `string`                              | No       | Font size for time slot labels (default: "12px")                                                                                                     |
+| `renderTitle`   | `(time: TTimeInterval) => string`     | No       | Custom function to render time slot labels                                                                                                           |
+| `onBarClick`    | `(clickData: BarClickData) => void`   | No       | Callback function called when a bar is clicked. Receives comprehensive click data including bar info, position, dimensions, and controller reference |
+| `onChartHover`  | `(hoverData: ChartHoverData) => void` | No       | Callback function called when mouse moves over the chart. Receives hover position and active time slot information                                   |
 
 #### TimeLineBarData Interface
 
@@ -263,107 +153,30 @@ interface BarClickData {
 }
 ```
 
-#### Usage Examples
+#### ChartHoverData Interface
 
-**Basic Timeline (no bars, only time slots):**
-
-```tsx
-<TimeLineChart startDate="2020" endDate="2025" interval="Y" />
-```
-
-**Project Timeline with Bar Click Handler:**
+The `ChartHoverData` interface provides information when the mouse hovers over the chart:
 
 ```tsx
-import {
-  TimeLineChart,
-  type BarClickData,
-  type TimeLineBarData,
-} from "flex-charts";
-
-const projectData: TimeLineBarData[] = [
-  {
-    id: "planning",
-    start: "01/2024",
-    end: "03/2024",
-    label: "Planning Phase",
-    backgroundColor: "#fbbf24",
-    textColor: "#000",
-  },
-  {
-    id: "development",
-    start: "03/2024",
-    end: "10/2024",
-    label: "Development",
-    backgroundColor: "#22c55e",
-  },
-  {
-    id: "testing",
-    start: "09/2024",
-    end: "12/2024",
-    label: "Testing & QA",
-    backgroundColor: "#ef4444",
-  },
-];
-
-const handleBarClick = (clickData: BarClickData) => {
-  const { bar, relativePosition, dimensions, controller } = clickData;
-
-  // Access bar information
-  console.log(`Clicked bar: ${bar.label}`);
-  console.log(`Time range: ${bar.start} - ${bar.end}`);
-
-  // Use position data
-  console.log(
-    `Bar spans from ${(relativePosition.start * 100).toFixed(1)}% to ${(
-      relativePosition.end * 100
-    ).toFixed(1)}%`
-  );
-
-  // Programmatically control the chart using the controller
-  controller.scrollTo(relativePosition.center); // Center the clicked bar
-
-  // Access dimensions
-  console.log(`Bar size: ${dimensions.width}px × ${dimensions.height}px`);
-};
-
-<TimeLineChart
-  startDate="01/2024"
-  endDate="12/2024"
-  interval="M"
-  bars={projectData}
-  onBarClick={handleBarClick}
-  width="1000px"
-  renderTitle={(time) => time.value.toString().slice(0, 3)}
-/>;
-```
-
-**Timeline with Controller Access:**
-
-```tsx
-import { useRef } from "react";
-import { TimeLineChart, type TimeLineChartController } from "flex-charts";
-
-function Timeline() {
-  const chartRef = useRef<TimeLineChartController>(null);
-
-  const handleBarClick = (clickData: BarClickData) => {
-    // Use the controller reference from click data (recommended)
-    clickData.controller.scrollToCenter();
-
-    // Or use the ref (alternative approach)
-    chartRef.current?.scrollTo(clickData.relativePosition.start);
+interface ChartHoverData {
+  // Mouse position relative to chart (0-1, where 0 is start of chart, 1 is end)
+  relativePosition: number;
+  // Pixel position within the chart container
+  pixelPosition: {
+    x: number;
+    y: number;
   };
-
-  return (
-    <TimeLineChart
-      ref={chartRef}
-      startDate="2020"
-      endDate="2025"
-      interval="Y"
-      bars={projectData}
-      onBarClick={handleBarClick}
-    />
-  );
+  // Active time slot information at the hover position
+  activeTimeSlot: {
+    index: number; // Index of the time slot
+    value: string; // Time slot value (e.g., "2020", "Jan", etc.)
+    start: number; // Start position of time slot (0-1)
+    end: number; // End position of time slot (0-1)
+  } | null;
+  // Chart controller reference
+  controller: TimeLineChartController;
+  // Original mouse event
+  event: React.MouseEvent<HTMLDivElement>;
 }
 ```
 
@@ -396,45 +209,21 @@ interface TimeLineChartController {
   // Element access
   getAllBarElements(): Map<string | number, HTMLElement>;
   getTimeSlotElements(): HTMLElement[];
-}
-```
 
-**Controller Usage:**
-
-```tsx
-import { useRef, useEffect } from "react";
-import { TimeLineChart, type TimeLineChartController } from "flex-charts";
-
-function ControlledTimeline() {
-  const chartRef = useRef<TimeLineChartController>(null);
-
-  useEffect(() => {
-    if (chartRef.current) {
-      // Subscribe to dimension changes
-      const unsubscribe = chartRef.current.onDimensionChange((dimensions) => {
-        console.log("Chart resized:", dimensions);
-      });
-
-      return unsubscribe; // Cleanup on unmount
-    }
-  }, []);
-
-  const scrollToQuarter = () => {
-    chartRef.current?.scrollTo(0.25); // Scroll to 25% position
-  };
-
-  return (
-    <div>
-      <button onClick={scrollToQuarter}>Scroll to 25%</button>
-      <TimeLineChart
-        ref={chartRef}
-        startDate="2020"
-        endDate="2025"
-        interval="Y"
-        bars={data}
-      />
-    </div>
-  );
+  // Internal methods
+  initialize(
+    startDate: string,
+    endDate: string,
+    barCount: number,
+    element: HTMLElement | null
+  ): void;
+  updateElement(element: HTMLElement): void;
+  updateContainerElement(element: HTMLElement): void;
+  updateTimeSlotElements(elements: HTMLElement[]): void;
+  addBarElement(id: string | number, element: HTMLElement): void;
+  removeBarElement(id: string | number): void;
+  setScrollToCallback(callback: (position: number) => void): void;
+  notifyScrollPositionChange(position: number): void;
 }
 ```
 

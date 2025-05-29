@@ -45,6 +45,28 @@ export interface BarClickData {
   event: React.MouseEvent<HTMLDivElement>;
 }
 
+// Type definitions for mouse hover events
+export interface ChartHoverData {
+  // Mouse position relative to chart (0-1, where 0 is start of chart, 1 is end)
+  relativePosition: number;
+  // Pixel position within the chart container
+  pixelPosition: {
+    x: number;
+    y: number;
+  };
+  // Active time slot information at the hover position
+  activeTimeSlot: {
+    index: number; // Index of the time slot
+    value: string; // Time slot value (e.g., "2020", "Jan", etc.)
+    start: number; // Start position of time slot (0-1)
+    end: number; // End position of time slot (0-1)
+  } | null;
+  // Chart controller reference
+  controller: TimeLineChartController;
+  // Original mouse event
+  event: React.MouseEvent<HTMLDivElement>;
+}
+
 // Type definitions for the bar data
 export interface TimeLineBarData {
   id?: string | number;
@@ -169,6 +191,7 @@ const TimeLineBar = (props: {
         width: "100%",
         height: "20px",
         position: "relative",
+        pointerEvents: "none", // Prevent pointer events on the container
       }}
     >
       {" "}
@@ -201,6 +224,7 @@ const TimeLineBar = (props: {
           color: textColor || "white",
           border: `1px solid ${color || backgroundColor || "#3b82f6"}`,
           cursor: onBarClick ? "pointer" : "default",
+          pointerEvents: onBarClick ? "auto" : "none", // Enable pointer events only if onBarClick is provided
         }}
       >
         {props.children}
@@ -220,20 +244,27 @@ export const TimeLineChart = forwardRef<
     interval: TTimeIntervalType;
     bars?: TimeLineBarData[];
     onBarClick?: (clickData: BarClickData) => void;
+    onChartHover?: (hoverData: ChartHoverData) => void;
   }
 >((props, ref) => {
-  const { startDate, endDate, interval, bars, onBarClick } = props;
+  const { startDate, endDate, interval, bars, onBarClick, onChartHover } =
+    props;
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
-
   // Scroll state management
   const [scrollPosition, setScrollPosition] = useState(0);
+  // Time slots visibility state
+  const [chartBottomY, setChartBottomY] = useState(0);
+  const [windowScrollY, setWindowScrollY] = useState(0);
+  const [windowHeight, setWindowHeight] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   // Create controller instance
   const controllerRef = useRef<TimeLineChartController>(
     new TimeLineChartController()
   );
   const chartElementRef = useRef<HTMLDivElement>(null);
+
   const containerElementRef = useRef<HTMLDivElement>(null);
   const timeSlotElementsRef = useRef<HTMLElement[]>([]);
 
@@ -335,10 +366,132 @@ export const TimeLineChart = forwardRef<
       // Notify controller of scroll position change
       controllerRef.current.notifyScrollPositionChange(scrollPosition);
     }
-  }, [scrollPosition, controllerRef]);
+  }, [scrollPosition, controllerRef]); // Track chart position and window scroll for time slots visibility
+  useEffect(() => {
+    const updateChartPosition = () => {
+      if (chartElementRef.current) {
+        const rect = chartElementRef.current.getBoundingClientRect();
+        setChartBottomY(rect.bottom);
+      }
+    };
+    const updateWindowScroll = () => {
+      setWindowScrollY(window.scrollY);
+      setWindowHeight(window.innerHeight);
+      // Detect zoom level using visual viewport and device pixel ratio
+      const zoomFactor = window.visualViewport
+        ? window.visualViewport.scale
+        : window.devicePixelRatio || 1;
+      setZoomLevel(zoomFactor);
+    }; // Initial measurements
+    updateChartPosition();
+    updateWindowScroll();
+
+    // Add event listeners
+    window.addEventListener("scroll", updateWindowScroll);
+    window.addEventListener("resize", updateWindowScroll);
+
+    // Listen for zoom changes via visual viewport API
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", updateWindowScroll);
+    }
+
+    // Use ResizeObserver to track chart position changes
+    const resizeObserver = new ResizeObserver(updateChartPosition);
+    if (chartElementRef.current) {
+      resizeObserver.observe(chartElementRef.current);
+    }
+    return () => {
+      window.removeEventListener("scroll", updateWindowScroll);
+      window.removeEventListener("resize", updateWindowScroll);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", updateWindowScroll);
+      }
+      resizeObserver.disconnect();
+    };
+  }, []); // Calculate translateY for time slots to keep them visible
+  const calculateTimeSlotsTransform = () => {
+    // If chart bottom is below the viewport, move time slots up to keep them visible
+    // Account for browser zoom level in calculations
+    const effectiveWindowHeight = windowHeight / zoomLevel;
+    const effectiveScrollY = windowScrollY / zoomLevel;
+    const effectiveChartBottomY = chartBottomY / zoomLevel;
+
+    const viewportBottom = effectiveScrollY + effectiveWindowHeight;
+    const chartOverflowBelow = effectiveChartBottomY - viewportBottom;
+
+    if (chartOverflowBelow > 0) {
+      // Chart extends below viewport, move time slots up by the overflow amount
+      // Apply zoom factor to the transform as well
+      const transformAmount = (chartOverflowBelow + 20) * zoomLevel;
+      return `translateY(-${transformAmount}px)`; // Add 20px padding
+    }
+
+    return "translateY(0px)";
+  };
+
+  // Check if time slots need to be transformed (moved up)
+  const isTimeSlotsTransformed = () => {
+    // Account for browser zoom level in calculations
+    const effectiveWindowHeight = windowHeight / zoomLevel;
+    const effectiveScrollY = windowScrollY / zoomLevel;
+    const effectiveChartBottomY = chartBottomY / zoomLevel;
+
+    const viewportBottom = effectiveScrollY + effectiveWindowHeight;
+    const chartOverflowBelow = effectiveChartBottomY - viewportBottom;
+    return chartOverflowBelow > 0;
+  };
 
   // Expose controller to parent component via ref
   useImperativeHandle(ref, () => controllerRef.current, []);
+
+  // Handle mouse hover over chart
+  const handleChartHover = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!onChartHover || !containerElementRef.current) return;
+    const containerRect = containerElementRef.current.getBoundingClientRect();
+    const relativeX = event.clientX - containerRect.left;
+    const relativeY = event.clientY - containerRect.top;
+
+    // Get dimensions from controller to account for total chart width
+    const dimensions = controllerRef.current.getDimensions();
+    const scrollLeft = containerElementRef.current.scrollLeft;
+
+    // Calculate relative position based on total chart width, not just visible width
+    let relativePosition = 0;
+    if (dimensions.total?.width && dimensions.visible?.width) {
+      // Account for scroll position and total width
+      const totalWidth = dimensions.total.width;
+      const absoluteX = scrollLeft + relativeX;
+      relativePosition = absoluteX / totalWidth;
+    } else {
+      // Fallback to basic calculation if dimensions not available
+      relativePosition = relativeX / containerRect.width;
+    }
+    // Find active time slot at this position
+    const activeTimeSlotIndex = Math.floor(relativePosition * slots.length);
+    const activeTimeSlot =
+      activeTimeSlotIndex >= 0 && activeTimeSlotIndex < slots.length
+        ? {
+            index: activeTimeSlotIndex,
+            value: slots[activeTimeSlotIndex].value.toString(),
+            start: activeTimeSlotIndex / slots.length,
+            end: (activeTimeSlotIndex + 1) / slots.length,
+          }
+        : null;
+
+    // Create hover data
+    const hoverData: ChartHoverData = {
+      relativePosition: Math.max(0, Math.min(1, relativePosition)),
+      pixelPosition: {
+        x: relativeX,
+        y: relativeY,
+      },
+      activeTimeSlot,
+      controller: controllerRef.current,
+      event,
+    };
+
+    onChartHover(hoverData);
+  };
 
   // Here you can implement the logic to display the date range
   // based on the provided startDate, endDate, and interval.
@@ -355,21 +508,26 @@ export const TimeLineChart = forwardRef<
       className="timeline-chart"
       data-test-id="timeline-chart"
     >
+      {" "}
       <div
         style={{
           display: "flex",
           alignItems: "flex-start",
           gap: "0px",
           flexDirection: "column",
-          overflow: "hidden",
+          overflow: "auto",
           width: "100%",
           scrollBehavior: "smooth",
         }}
-        ref={containerElementRef}
+        className="timeline-chart-scroll-container"
+        ref={(el) => {
+          containerElementRef.current = el;
+        }}
       >
         {" "}
         <div
           data-testid="timeline-chart-container"
+          onMouseMove={handleChartHover}
           style={{
             display: "flex",
             flexDirection: "column",
@@ -380,7 +538,16 @@ export const TimeLineChart = forwardRef<
             minWidth: "100%",
           }}
         >
-          {" "}
+          {/* Grid lines container */}
+          <div className="time-grid">
+            {slots.map((_, index) => (
+              <div
+                key={`grid-${index}`}
+                className="time-grid-line"
+                data-test-id={`grid-line-${index}`}
+              />
+            ))}
+          </div>{" "}
           {barData.map((bar) => (
             <TimeLineBar
               key={bar.id || `${bar.start}-${bar.end}-${bar.label}`}
@@ -401,11 +568,17 @@ export const TimeLineChart = forwardRef<
             </TimeLineBar>
           ))}{" "}
           <div
-            className="time-slots"
+            className={`time-slots ${
+              isTimeSlotsTransformed() ? "time-slots-transformed" : ""
+            }`}
             style={{
               width: "100%",
               display: "flex",
               flexWrap: "nowrap",
+              transform: calculateTimeSlotsTransform(),
+              zIndex: isTimeSlotsTransformed() ? 1000 : "auto",
+              pointerEvents: isTimeSlotsTransformed() ? "none" : "auto",
+              position: "relative",
             }}
           >
             {" "}

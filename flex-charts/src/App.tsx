@@ -5,6 +5,7 @@ import { useRef, useEffect, useState } from "react";
 import {
   TimeLineChart,
   type BarClickData,
+  type ChartHoverData,
 } from "./lib/components/TimeLineChart";
 import { TimeLineChartController } from "./lib/controllers/TimeLineChartController";
 import { customBars } from "./lib/data/customBars";
@@ -17,7 +18,8 @@ function App() {
     visible: { width: number; height: number } | null;
     total: { width: number; height: number } | null;
   } | null>(null);
-  const [_, setScrollPosition] = useState(0);
+  const [_, setCurrentScrollPosition] = useState(0);
+  const [hoverInfo, setHoverInfo] = useState<ChartHoverData | null>(null);
 
   // Custom bar data for the first TimeLineChart with colors
 
@@ -52,7 +54,7 @@ function App() {
       // Subscribe to scroll position changes
       const unsubscribeScroll = chartRef.current.onScrollPositionChange(
         (position) => {
-          setScrollPosition(position);
+          setCurrentScrollPosition(position);
         }
       );
 
@@ -103,7 +105,6 @@ ${dimensionsText}`);
       chartRef.current.scrollToCenter();
     }
   };
-
   const handleBarClick = (clickData: BarClickData) => {
     const { bar, relativePosition, dimensions, controller } = clickData;
 
@@ -131,9 +132,19 @@ Chart Dimensions: ${dimensions.chartWidth.toFixed(
 Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
 
 🎯 Chart scrolled to center this bar using controller from click data!`;
-
     console.log(message);
     console.log("Bar click data:", clickData);
+  };
+
+  const handleChartHover = (hoverData: ChartHoverData) => {
+    setHoverInfo(hoverData);
+
+    // Optional: Log hover information to console for debugging
+    console.log(
+      `Hovering at ${(hoverData.relativePosition * 100).toFixed(1)}% - ` +
+        `Time Slot: ${hoverData.activeTimeSlot?.value || "None"} ` +
+        `(Index: ${hoverData.activeTimeSlot?.index ?? "N/A"})`
+    );
   };
 
   return (
@@ -200,6 +211,7 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
       <main>
         {" "}
         <div className="chart-container">
+          {" "}
           <TimeLineChart
             ref={chartRef}
             startDate="1992"
@@ -210,7 +222,8 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
             key="1"
             bars={customBars}
             onBarClick={handleBarClick}
-            renderTitle={(time) => `${time.value.toString().slice(2, 4)}`}
+            onChartHover={handleChartHover}
+            renderTitle={(time) => `${time.value.toString().slice(0, 4)}`}
           />
         </div>
         {/* Chart Controls - moved below chart for better UX */}
@@ -261,9 +274,64 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
               cursor: "pointer",
             }}
           >
+            {" "}
             📊 Chart Info
           </button>
         </div>
+        {/* Hover Information Display */}
+        {hoverInfo && (
+          <div
+            className="hover-info"
+            style={{
+              padding: "10px",
+              backgroundColor: theme.mode === "light" ? "#f8f9fa" : "#2d3748",
+              border: `1px solid ${
+                theme.mode === "light" ? "#dee2e6" : "#4a5568"
+              }`,
+              borderRadius: "4px",
+              marginBottom: "20px",
+              fontSize: "12px",
+              fontFamily: "monospace",
+            }}
+          >
+            <h3 style={{ margin: "0 0 8px 0", fontSize: "14px" }}>
+              🎯 Chart Hover Info
+            </h3>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "auto 1fr",
+                gap: "4px 12px",
+                alignItems: "center",
+              }}
+            >
+              <span style={{ fontWeight: "bold" }}>Position:</span>
+              <span>{(hoverInfo.relativePosition * 100).toFixed(1)}%</span>
+
+              <span style={{ fontWeight: "bold" }}>Pixel Position:</span>
+              <span>
+                ({hoverInfo.pixelPosition.x.toFixed(0)},{" "}
+                {hoverInfo.pixelPosition.y.toFixed(0)})
+              </span>
+
+              {hoverInfo.activeTimeSlot && (
+                <>
+                  <span style={{ fontWeight: "bold" }}>Time Slot:</span>
+                  <span>{hoverInfo.activeTimeSlot.value}</span>
+
+                  <span style={{ fontWeight: "bold" }}>Slot Index:</span>
+                  <span>{hoverInfo.activeTimeSlot.index}</span>
+
+                  <span style={{ fontWeight: "bold" }}>Slot Range:</span>
+                  <span>
+                    {(hoverInfo.activeTimeSlot.start * 100).toFixed(1)}% -{" "}
+                    {(hoverInfo.activeTimeSlot.end * 100).toFixed(1)}%
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        )}
         <div className="code-example">
           <h2>Example Code</h2>
           <pre>

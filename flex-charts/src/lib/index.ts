@@ -10,6 +10,8 @@ export { LineChart } from "./components/LineChart";
 export {
   TimeLineChart,
   type TimeLineBarData,
+  type BarClickData,
+  type ChartHoverData,
 } from "./components/TimeLineChart";
 
 // Controllers
