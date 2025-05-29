@@ -165,7 +165,10 @@ Use refs to control the timeline programmatically:
 
 ```tsx
 import { useRef } from "react";
-import { TimeLineChart, type TimeLineChartController } from "@terotests/flex-charts";
+import {
+  TimeLineChart,
+  type TimeLineChartController,
+} from "@terotests/flex-charts";
 
 function ControlledTimeline() {
   const chartRef = useRef<TimeLineChartController>(null);
