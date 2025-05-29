@@ -19,7 +19,7 @@ function App() {
       }}
     >
       <header>
-        <h1>FlexCharts Demo2</h1>
+        <h1>FlexCharts Demo</h1>
         <div className="controls">
           <button onClick={toggleTheme}>
             Switch to {theme.mode === "light" ? "Dark" : "Light"} Mode

@@ -21,8 +21,10 @@ export interface TimeLineBarData {
 }
 
 const TimeLineBar = (props: {
+  id?: string | number;
   start: string;
   end: string;
+  label: string;
   renderTitle?: (time: TTimeIntervalType) => string;
   children?: React.ReactNode;
   color?: string;
@@ -33,7 +35,8 @@ const TimeLineBar = (props: {
     end: string;
   };
 }) => {
-  const { start, end, range, color, backgroundColor, textColor } = props;
+  const { id, start, end, label, range, color, backgroundColor, textColor } =
+    props;
 
   const startTime = useMemo(() => parseTimeString(start), [start]);
   const endTime = useMemo(() => parseTimeString(end), [end]);
@@ -64,10 +67,15 @@ const TimeLineBar = (props: {
         position: "relative",
       }}
     >
+      {" "}
       <div
         className="bar"
+        data-test-id={`bar-${id}`}
         tabIndex={0}
-        title={`${start} - ${end}`}
+        title={label}
+        aria-label={label}
+        role="img"
+        aria-description={`${label}: ${start} - ${end}`}
         style={{
           left: prosStart,
           top: "0px",
@@ -129,6 +137,7 @@ export const TimeLineChart = (props: {
       }}
       key={`${startDate}-${endDate}-${interval}`}
       className="timeline-chart"
+      data-test-id="timeline-chart"
     >
       <div
         style={{
@@ -155,8 +164,10 @@ export const TimeLineChart = (props: {
           {barData.map((bar) => (
             <TimeLineBar
               key={bar.id || `${bar.start}-${bar.end}-${bar.label}`}
+              id={bar.id}
               start={bar.start}
               end={bar.end}
+              label={bar.label}
               color={bar.color}
               backgroundColor={bar.backgroundColor}
               textColor={bar.textColor}
@@ -169,9 +180,11 @@ export const TimeLineChart = (props: {
             className="time-slots"
             style={{ width: "100%", display: "flex", flexWrap: "nowrap" }}
           >
+            {" "}
             {slots.map((slot, index) => (
               <div
                 className="time-slot"
+                data-test-id={`time-slot-${index}`}
                 key={index}
                 style={{
                   whiteSpace: "nowrap",
