@@ -62,10 +62,13 @@ jobs:
           test -f dist_lib/TimeLineChart.css || (echo "❌ Missing dist_lib/TimeLineChart.css" && exit 1)
           test -f dist_lib/package.json || (echo "❌ Missing dist_lib/package.json" && exit 1)
           test -f dist_lib/README.md || (echo "❌ Missing dist_lib/README.md" && exit 1)
-          echo "✅ All required files present"
-          echo "=== Verifying dist_lib/package.json content ==="
-          cat dist_lib/package.json | jq '.devDependencies // empty' | grep -q "null\|{}" || (echo "❌ devDependencies found in dist_lib/package.json" && exit 1)
-          echo "✅ dist_lib/package.json is clean (no devDependencies)"
+          echo "✅ All required files present"          echo "=== Verifying dist_lib/package.json content ==="
+          if cat dist_lib/package.json | jq -e '.devDependencies' > /dev/null 2>&1; then
+            echo "❌ devDependencies found in dist_lib/package.json"
+            exit 1
+          else
+            echo "✅ dist_lib/package.json is clean (no devDependencies)"
+          fi
 
       - name: Bump version (manual workflow only)
         if: github.event_name == 'workflow_dispatch'
