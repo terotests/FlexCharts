@@ -149,7 +149,7 @@ export function App() {
           <h2>Example Code</h2>
           <pre>
             <code>
-              {`import { TimeLineChart, type TimeLineBarData } from 'flex-charts';
+              {`import { TimeLineChart, type TimeLineBarData } from '@terotests/flex-charts';
 
 const timelineBars: TimeLineBarData[] = [
   {

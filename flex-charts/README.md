@@ -84,7 +84,7 @@ npm run lint:fix
 The TimeLineChart component provides a timeline visualization that can display bars representing time periods with custom colors and labels.
 
 ```tsx
-import { TimeLineChart, type TimeLineBarData } from "flex-charts";
+import { TimeLineChart, type TimeLineBarData } from "@terotests/flex-charts";
 
 <TimeLineChart
   startDate="2020"
@@ -230,7 +230,7 @@ interface TimeLineChartController {
 ### Theming
 
 ```tsx
-import { useChartTheme } from "flex-charts";
+import { useChartTheme } from "@terotests/flex-charts";
 
 function App() {
   const { theme, toggleTheme, setThemeMode } = useChartTheme("light");
@@ -253,7 +253,7 @@ import {
   calculateTimeSlot,
   convertToSeconds,
   getTimeDifferenceInUnit,
-} from "flex-charts";
+} from "@terotests/flex-charts";
 
 // Create time intervals
 const startTime = { type: "Y", value: 2023 };

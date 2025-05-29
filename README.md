@@ -32,11 +32,11 @@ A flexible chart library for React applications focused on time-based visualizat
 ## Installation
 
 ```bash
-npm install flex-charts
+npm install @terotests/flex-charts
 # or
-yarn add flex-charts
+yarn add @terotests/flex-charts
 # or
-pnpm add flex-charts
+pnpm add @terotests/flex-charts
 ```
 
 ## 🌐 Live Demo
@@ -52,7 +52,7 @@ The demo showcases the TimeLineChart component with interactive examples and cod
 The TimeLineChart component provides a timeline visualization that can display bars representing time periods with custom colors and labels.
 
 ```tsx
-import { TimeLineChart, type TimeLineBarData } from "flex-charts";
+import { TimeLineChart, type TimeLineBarData } from "@terotests/flex-charts";
 
 // Define your data
 const timelineBars: TimeLineBarData[] = [
@@ -108,7 +108,7 @@ import {
   TimeLineChart,
   type BarClickData,
   type TimeLineBarData,
-} from "flex-charts";
+} from "@terotests/flex-charts";
 
 const projectData: TimeLineBarData[] = [
   {
@@ -165,7 +165,10 @@ Use refs to control the timeline programmatically:
 
 ```tsx
 import { useRef } from "react";
-import { TimeLineChart, type TimeLineChartController } from "flex-charts";
+import {
+  TimeLineChart,
+  type TimeLineChartController,
+} from "@terotests/flex-charts";
 
 function ControlledTimeline() {
   const chartRef = useRef<TimeLineChartController>(null);
@@ -230,7 +233,7 @@ interface TimeLineBarData {
 Customize the appearance of your charts:
 
 ```tsx
-import { useChartTheme } from "flex-charts";
+import { useChartTheme } from "@terotests/flex-charts";
 
 function App() {
   const { theme, toggleTheme, setThemeMode } = useChartTheme("light");
@@ -258,7 +261,7 @@ import {
   calculateTimeSlot,
   parseTimeString,
   getTimeDifferenceInUnit,
-} from "flex-charts";
+} from "@terotests/flex-charts";
 
 // Parse different time formats
 const date1 = parseTimeString("2025-01-15");
