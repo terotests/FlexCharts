@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Chart Controller Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: black;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .info-panel {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+        .chart-container {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Timeline Chart Controller Test</h1>
+        
+        <div class="info-panel">
+            <h3>Chart Controller Features Test</h3>
+            <p>This page tests the enhanced TimeLineChart with controller functionality including:</p>
+            <ul>
+                <li>DOM element reference storage</li>
+                <li>ResizeObserver for automatic dimension updates</li>
+                <li>Dimension change callbacks</li>
+                <li>Bar and time slot element management</li>
+                <li>Accessibility attributes validation</li>
+            </ul>
+        </div>
+
+        <div class="controls">
+            <button class="btn-primary" onclick="getChartInfo()">Get Chart Info</button>
+            <button class="btn-success" onclick="testControllerFeatures()">Test Controller Features</button>
+            <button class="btn-info" onclick="testDimensionCallbacks()">Test Dimension Callbacks</button>
+            <button class="btn-warning" onclick="resizeChart()">Resize Chart</button>
+        </div>
+
+        <div id="status" class="status" style="display: none;"></div>
+
+        <div class="chart-container">
+            <div id="timeline-test-root"></div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h3>Console Output:</h3>
+            <pre id="console-output">Ready to test chart controller features...</pre>
+        </div>
+    </div>
+
+    <!-- React Development Build (for testing) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <script>
+        // Mock console to capture output
+        const originalConsoleLog = console.log;
+        const consoleOutput = document.getElementById('console-output');
+        let logBuffer = [];
+
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            logBuffer.push(new Date().toLocaleTimeString() + ': ' + message);
+            if (logBuffer.length > 20) logBuffer = logBuffer.slice(-20);
+            consoleOutput.textContent = logBuffer.join('\n');
+        };
+
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            status.style.display = 'block';
+            setTimeout(() => status.style.display = 'none', 5000);
+        }
+
+        function getChartInfo() {
+            console.log('=== Getting Chart Info ===');
+            showStatus('Chart info logged to console');
+            // This would be called from the React component
+        }
+
+        function testControllerFeatures() {
+            console.log('=== Testing Controller Features ===');
+            showStatus('Controller features test initiated');
+            // This would be called from the React component
+        }
+
+        function testDimensionCallbacks() {
+            console.log('=== Testing Dimension Callbacks ===');
+            showStatus('Dimension callback test initiated');
+            // This would trigger dimension changes
+        }
+
+        function resizeChart() {
+            const container = document.querySelector('.chart-container');
+            const currentWidth = container.style.width;
+            
+            if (currentWidth === '50%') {
+                container.style.width = '100%';
+                showStatus('Chart resized to 100% width');
+            } else {
+                container.style.width = '50%';
+                showStatus('Chart resized to 50% width');
+            }
+            
+            console.log('Chart container resized - dimension callbacks should trigger');
+        }
+
+        // Initialize
+        console.log('Chart Controller Test Page Loaded');
+        console.log('Environment: Windows with PowerShell');
+        console.log('Features: DOM element refs, ResizeObserver, callbacks');
+    </script>
+
+    <script>
+        // Note: In the actual implementation, this would load the compiled React components
+        // For now, this serves as a test page structure
+        console.log('Ready to load TimeLineChart component with controller...');
+        
+        // Display some mock chart info to demonstrate the interface
+        setTimeout(() => {
+            console.log('Mock Chart Controller Info:', {
+                chartId: 'chart-test-12345',
+                isInitialized: true,
+                barCount: 15,
+                startDate: '1992',
+                endDate: '12/2025',
+                dimensions: {
+                    visible: { width: 800.00, height: 200.00 },
+                    total: { width: 1200.00, height: 220.00 }
+                }
+            });
+        }, 1000);
+    </script>
+</body>
+</html>

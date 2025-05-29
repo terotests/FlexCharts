@@ -5,7 +5,10 @@ import { resolve } from "path";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === "production" ? "/FlexCharts/" : "/",
+  base:
+    process.env.NODE_ENV === "production" && process.env.GITHUB_PAGES
+      ? "/FlexCharts/"
+      : "/",
   resolve: {
     alias: {
       // This allows importing from 'lib' in the playground

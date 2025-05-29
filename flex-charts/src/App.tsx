@@ -1,123 +1,140 @@
 import { useChartTheme } from "./lib";
 import "./App.css";
+import { useRef, useEffect, useState } from "react";
 
 import {
   TimeLineChart,
-  type TimeLineBarData,
+  type BarClickData,
 } from "./lib/components/TimeLineChart";
+import { TimeLineChartController } from "./lib/controllers/TimeLineChartController";
+import { customBars } from "./lib/data/customBars";
 
 function App() {
   const { theme, toggleTheme } = useChartTheme();
+  const chartRef = useRef<TimeLineChartController>(null);
+  const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const [dimensions, setDimensions] = useState<{
+    visible: { width: number; height: number } | null;
+    total: { width: number; height: number } | null;
+  } | null>(null);
+  const [_, setScrollPosition] = useState(0);
 
   // Custom bar data for the first TimeLineChart with colors
-  const customBars: TimeLineBarData[] = [
-    {
-      id: 1,
-      start: "05/1992",
-      end: "05/1995",
-      label: "Turbo C",
-      backgroundColor: "#ff6b6b",
-    },
-    {
-      id: 2,
-      start: "05/1992",
-      end: "05/1998",
-      label: "Pascal",
-      backgroundColor: "#4ecdc4",
-    },
-    {
-      id: 3,
-      start: "05/1994",
-      end: "05/1999",
-      label: "x86 Asm (TASM)",
-      backgroundColor: "#45b7d1",
-    },
-    {
-      id: 4,
-      start: "05/1996",
-      end: "05/1998",
-      label: "Perl",
-      backgroundColor: "#f9ca24",
-    },
-    {
-      id: 5,
-      start: "05/1996",
-      end: "05/1998",
-      label: "Watcom C",
-      backgroundColor: "#6c5ce7",
-    },
-    {
-      id: 6,
-      start: "05/1998",
-      end: "05/2003",
-      label: "Visual Studio",
-      backgroundColor: "#a29bfe",
-    },
-    {
-      id: 7,
-      start: "05/2001",
-      end: "08/2005",
-      label: "Pascal To C",
-      backgroundColor: "#fd79a8",
-    },
-    {
-      id: 8,
-      start: "05/2002",
-      end: "08/2012",
-      label: "Apache HTTP Server",
-      backgroundColor: "#e17055",
-    },
-    {
-      id: 9,
-      start: "05/2002",
-      end: "08/2012",
-      label: "MySQL",
-      backgroundColor: "#00b894",
-    },
-    {
-      id: 10,
-      start: "03/2002",
-      end: "06/2014",
-      label: "PHP",
-      backgroundColor: "#0984e3",
-    },
-    {
-      id: 11,
-      start: "03/2006",
-      end: "06/2025",
-      label: "JavaScript",
-      backgroundColor: "#fdcb6e",
-    },
-    {
-      id: 12,
-      start: "01/2018",
-      end: "12/2022",
-      label: "Nginx",
-      backgroundColor: "#e84393",
-    },
-    {
-      id: 13,
-      start: "01/2018",
-      end: "12/2025",
-      label: "React",
-      backgroundColor: "#00cec9",
-    },
-    {
-      id: 14,
-      start: "08/2018",
-      end: "06/2025",
-      label: "TypeScript",
-      backgroundColor: "#6c5ce7",
-      textColor: "#ffffff",
-    },
-    {
-      id: 15,
-      start: "03/2021",
-      end: "06/2025",
-      label: "GraphQL",
-      backgroundColor: "#fd79a8",
-    },
-  ];
+
+  useEffect(() => {
+    // Demonstrate accessing chart controller after mount
+    const timer = setTimeout(() => {
+      if (chartRef.current) {
+        console.log("Chart Controller Info:", chartRef.current.getChartInfo());
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []); // Bind to chart ref
+  useEffect(() => {
+    if (chartRef.current) {
+      // Example of subscribing to dimension changes
+      const unsubscribeDimensions = chartRef.current.onDimensionChange(
+        (newDimensions) => {
+          console.log("Dimensions changed:", newDimensions);
+          setDimensions(newDimensions);
+
+          // Show scroll buttons if total width is larger than visible width
+          const shouldShowButtons =
+            newDimensions.visible &&
+            newDimensions.total &&
+            newDimensions.total.width > newDimensions.visible.width;
+
+          setShowScrollButtons(!!shouldShowButtons);
+        }
+      );
+
+      // Subscribe to scroll position changes
+      const unsubscribeScroll = chartRef.current.onScrollPositionChange(
+        (position) => {
+          setScrollPosition(position);
+        }
+      );
+
+      // Cleanup subscriptions on unmount
+      return () => {
+        unsubscribeDimensions();
+        unsubscribeScroll();
+        console.log("Chart subscriptions cleaned up");
+      };
+    }
+  }, []);
+  const handleShowChartInfo = () => {
+    if (chartRef.current) {
+      const info = chartRef.current.getChartInfo();
+      const dimensionsText =
+        info.dimensions.visible && info.dimensions.total
+          ? `Visible: ${info.dimensions.visible.width.toFixed(
+              2
+            )}px × ${info.dimensions.visible.height.toFixed(2)}px
+Total: ${info.dimensions.total.width.toFixed(
+              2
+            )}px × ${info.dimensions.total.height.toFixed(2)}px`
+          : "Not available";
+
+      alert(`Chart Controller Info:
+ID: ${info.chartId}
+Initialized: ${info.isInitialized}
+Bars Count: ${info.barCount}
+Date Range: ${info.startDate} - ${info.endDate}
+Dimensions:
+${dimensionsText}`);
+    }
+  };
+
+  const handleScrollToStart = () => {
+    if (chartRef.current) {
+      chartRef.current.scrollToStart();
+    }
+  };
+
+  const handleScrollToEnd = () => {
+    if (chartRef.current) {
+      chartRef.current.scrollToEnd();
+    }
+  };
+  const handleScrollToCenter = () => {
+    if (chartRef.current) {
+      chartRef.current.scrollToCenter();
+    }
+  };
+
+  const handleBarClick = (clickData: BarClickData) => {
+    const { bar, relativePosition, dimensions, controller } = clickData;
+
+    // Scroll to center the clicked bar using the controller from click data
+    controller.scrollTo(relativePosition.center);
+    console.log(
+      `Scrolling to center bar "${bar.label}" at position ${(
+        relativePosition.center * 100
+      ).toFixed(1)}%`
+    );
+
+    const message = `Bar Clicked: ${bar.label}
+ID: ${bar.id}
+Time Range: ${bar.start} - ${bar.end}
+Relative Position: ${(relativePosition.start * 100).toFixed(1)}% - ${(
+      relativePosition.end * 100
+    ).toFixed(1)}%
+Center Position: ${(relativePosition.center * 100).toFixed(1)}%
+Bar Dimensions: ${dimensions.width.toFixed(0)}px × ${dimensions.height.toFixed(
+      0
+    )}px
+Chart Dimensions: ${dimensions.chartWidth.toFixed(
+      0
+    )}px × ${dimensions.chartHeight.toFixed(0)}px
+Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
+
+🎯 Chart scrolled to center this bar using controller from click data!`;
+
+    console.log(message);
+    console.log("Bar click data:", clickData);
+  };
 
   return (
     <div
@@ -128,18 +145,63 @@ function App() {
         height: "100%",
       }}
     >
+      {" "}
       <header>
         <h1>FlexCharts Demo</h1>
-        <div className="controls">
-          <button onClick={toggleTheme}>
-            Switch to {theme.mode === "light" ? "Dark" : "Light"} Mode
-          </button>
-        </div>
+        {showScrollButtons && dimensions && (
+          <div
+            className="scroll-controls"
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+            }}
+          >
+            <button
+              onClick={handleScrollToStart}
+              style={{
+                padding: "8px 12px",
+                fontSize: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              ← Start
+            </button>
+            <button
+              onClick={handleScrollToCenter}
+              style={{
+                padding: "8px 12px",
+                fontSize: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              ↔ Center
+            </button>
+            <button
+              onClick={handleScrollToEnd}
+              style={{
+                padding: "8px 12px",
+                fontSize: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              End →
+            </button>
+          </div>
+        )}
       </header>
-
       <main>
+        {" "}
         <div className="chart-container">
           <TimeLineChart
+            ref={chartRef}
             startDate="1992"
             endDate="12/2025"
             interval="Y"
@@ -147,10 +209,61 @@ function App() {
             labelFontSize="10px"
             key="1"
             bars={customBars}
+            onBarClick={handleBarClick}
             renderTitle={(time) => `${time.value.toString().slice(2, 4)}`}
           />
         </div>
-
+        {/* Chart Controls - moved below chart for better UX */}
+        <div
+          className="chart-controls"
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+            padding: "10px 0",
+            borderBottom: "1px solid #eaeaea",
+            marginBottom: "20px",
+          }}
+        >
+          <span style={{ fontSize: "14px", fontWeight: "bold" }}>
+            Chart Controls:
+          </span>
+          <button
+            onClick={toggleTheme}
+            style={{
+              padding: "8px 12px",
+              fontSize: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              backgroundColor: theme.mode === "light" ? "#6c757d" : "#f8f9fa",
+              color: theme.mode === "light" ? "white" : "black",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            {theme.mode === "light" ? "🌙" : "☀️"}{" "}
+            {theme.mode === "light" ? "Dark" : "Light"} Theme
+          </button>
+          <button
+            onClick={handleShowChartInfo}
+            style={{
+              padding: "8px 12px",
+              fontSize: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              backgroundColor: "#17a2b8",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            📊 Chart Info
+          </button>
+        </div>
         <div className="code-example">
           <h2>Example Code</h2>
           <pre>

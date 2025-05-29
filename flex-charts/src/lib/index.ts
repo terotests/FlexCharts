@@ -12,6 +12,13 @@ export {
   type TimeLineBarData,
 } from "./components/TimeLineChart";
 
+// Controllers
+export {
+  TimeLineChartController,
+  createChartController,
+  type ChartController,
+} from "./controllers/TimeLineChartController";
+
 // Utilities
 export { useChartTheme } from "./hooks/useChartTheme";
 
