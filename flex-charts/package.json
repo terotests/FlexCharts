@@ -14,10 +14,10 @@
     }
   },
   "files": [
-    "dist",
-    "README.md"
+    "dist"
   ],
   "sideEffects": false,
+  "private": true,
   "scripts": {
     "dev": "vite",
     "build": "rimraf dist && tsc -p tsconfig.lib.json && node build.js",
@@ -71,10 +71,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/flex-charts.git"
+    "url": "https://github.com/terotests/FlexCharts.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/flex-charts/issues"
+    "url": "https://github.com/terotests/FlexCharts/issues"
   },
-  "homepage": "https://github.com/yourusername/flex-charts#readme"
+  "homepage": "https://github.com/terotests/FlexCharts#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }
