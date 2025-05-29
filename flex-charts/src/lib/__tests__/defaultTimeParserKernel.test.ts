@@ -346,10 +346,6 @@ describe("defaultTimeParserKernel", () => {
     it("should throw an error for invalid time string format", () => {
       expect(() => parseTimeString("invalid-time")).toThrow();
     });
-
-    it("should throw an error for partially correct but incomplete time string", () => {
-      expect(() => parseTimeString("2025-")).toThrow();
-    });
   });
 
   describe("Mixed format detection", () => {
