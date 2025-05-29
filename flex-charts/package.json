@@ -17,10 +17,9 @@
     "dist"
   ],
   "sideEffects": false,
-  "private": true,
-  "scripts": {
+  "private": true,  "scripts": {
     "dev": "vite",
-    "build": "rimraf dist && tsc -p tsconfig.lib.json && node build.js",
+    "build": "rimraf dist_lib && tsc -p tsconfig.lib.json && node build.js",
     "build:playground": "vite build",
     "test": "vitest run",
     "test:watch": "vitest",
