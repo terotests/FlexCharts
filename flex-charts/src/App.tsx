@@ -2,7 +2,10 @@ import { useChartTheme } from "./lib";
 import "./App.css";
 import { useRef, useEffect, useState } from "react";
 
-import { TimeLineChart } from "./lib/components/TimeLineChart";
+import {
+  TimeLineChart,
+  type BarClickData,
+} from "./lib/components/TimeLineChart";
 import { TimeLineChartController } from "./lib/controllers/TimeLineChartController";
 import { customBars } from "./lib/data/customBars";
 
@@ -95,11 +98,42 @@ ${dimensionsText}`);
       chartRef.current.scrollToEnd();
     }
   };
-
   const handleScrollToCenter = () => {
     if (chartRef.current) {
       chartRef.current.scrollToCenter();
     }
+  };
+
+  const handleBarClick = (clickData: BarClickData) => {
+    const { bar, relativePosition, dimensions, controller } = clickData;
+
+    // Scroll to center the clicked bar using the controller from click data
+    controller.scrollTo(relativePosition.center);
+    console.log(
+      `Scrolling to center bar "${bar.label}" at position ${(
+        relativePosition.center * 100
+      ).toFixed(1)}%`
+    );
+
+    const message = `Bar Clicked: ${bar.label}
+ID: ${bar.id}
+Time Range: ${bar.start} - ${bar.end}
+Relative Position: ${(relativePosition.start * 100).toFixed(1)}% - ${(
+      relativePosition.end * 100
+    ).toFixed(1)}%
+Center Position: ${(relativePosition.center * 100).toFixed(1)}%
+Bar Dimensions: ${dimensions.width.toFixed(0)}px × ${dimensions.height.toFixed(
+      0
+    )}px
+Chart Dimensions: ${dimensions.chartWidth.toFixed(
+      0
+    )}px × ${dimensions.chartHeight.toFixed(0)}px
+Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
+
+🎯 Chart scrolled to center this bar using controller from click data!`;
+
+    console.log(message);
+    console.log("Bar click data:", clickData);
   };
 
   return (
@@ -114,14 +148,6 @@ ${dimensionsText}`);
       {" "}
       <header>
         <h1>FlexCharts Demo</h1>
-        <div className="controls" style={{ display: "none" }}>
-          <button onClick={toggleTheme}>
-            Switch to {theme.mode === "light" ? "Dark" : "Light"} Mode
-          </button>
-          <button onClick={handleShowChartInfo} style={{ marginLeft: "10px" }}>
-            Show Chart Info
-          </button>
-        </div>
         {showScrollButtons && dimensions && (
           <div
             className="scroll-controls"
@@ -183,8 +209,60 @@ ${dimensionsText}`);
             labelFontSize="10px"
             key="1"
             bars={customBars}
+            onBarClick={handleBarClick}
             renderTitle={(time) => `${time.value.toString().slice(2, 4)}`}
           />
+        </div>
+        {/* Chart Controls - moved below chart for better UX */}
+        <div
+          className="chart-controls"
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+            padding: "10px 0",
+            borderBottom: "1px solid #eaeaea",
+            marginBottom: "20px",
+          }}
+        >
+          <span style={{ fontSize: "14px", fontWeight: "bold" }}>
+            Chart Controls:
+          </span>
+          <button
+            onClick={toggleTheme}
+            style={{
+              padding: "8px 12px",
+              fontSize: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              backgroundColor: theme.mode === "light" ? "#6c757d" : "#f8f9fa",
+              color: theme.mode === "light" ? "white" : "black",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            {theme.mode === "light" ? "🌙" : "☀️"}{" "}
+            {theme.mode === "light" ? "Dark" : "Light"} Theme
+          </button>
+          <button
+            onClick={handleShowChartInfo}
+            style={{
+              padding: "8px 12px",
+              fontSize: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              backgroundColor: "#17a2b8",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            📊 Chart Info
+          </button>
         </div>
         <div className="code-example">
           <h2>Example Code</h2>

@@ -17,6 +17,34 @@ import { TimeLineChartController } from "../controllers/TimeLineChartController"
 
 import "./TimeLineChart.css"; // Assuming you have a CSS file for styling
 
+// Type definitions for bar click events
+export interface BarClickData {
+  // Bar data
+  bar: TimeLineBarData;
+  // Position within the chart (0-1, where 0 is start of chart, 1 is end)
+  relativePosition: {
+    start: number; // Position where bar starts (0-1)
+    end: number; // Position where bar ends (0-1)
+    center: number; // Center position of the bar (0-1)
+  };
+  // Dimensions and positioning
+  dimensions: {
+    // Bar's pixel dimensions
+    width: number;
+    height: number;
+    // Bar's absolute position in viewport
+    left: number;
+    top: number;
+    // Chart container dimensions for context
+    chartWidth: number;
+    chartHeight: number;
+  };
+  // Chart controller reference for programmatic chart control
+  controller: TimeLineChartController;
+  // Original mouse event
+  event: React.MouseEvent<HTMLDivElement>;
+}
+
 // Type definitions for the bar data
 export interface TimeLineBarData {
   id?: string | number;
@@ -43,6 +71,9 @@ const TimeLineBar = (props: {
     end: string;
   };
   onBarElementRef?: (id: string | number, element: HTMLElement | null) => void;
+  onBarClick?: (clickData: BarClickData) => void;
+  chartContainerRef?: React.RefObject<HTMLDivElement | null>;
+  controller?: TimeLineChartController;
 }) => {
   const {
     id,
@@ -54,6 +85,9 @@ const TimeLineBar = (props: {
     backgroundColor,
     textColor,
     onBarElementRef,
+    onBarClick,
+    chartContainerRef,
+    controller,
   } = props;
 
   const startTime = useMemo(() => parseTimeString(start), [start]);
@@ -73,9 +107,61 @@ const TimeLineBar = (props: {
     },
     endTime
   );
-
   const prosStart = `${(slotStart * 100).toFixed(1)}%`;
   const prosEnd = `${((slotEnd - slotStart) * 100).toFixed(1)}%`;
+
+  // Handle bar click
+  const handleBarClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!onBarClick) return;
+
+    const barElement = event.currentTarget;
+    const barRect = barElement.getBoundingClientRect();
+
+    // Get chart container dimensions for context
+    let chartWidth = 0;
+    let chartHeight = 0;
+
+    if (chartContainerRef?.current) {
+      const containerRect = chartContainerRef.current.getBoundingClientRect();
+      chartWidth = containerRect.width;
+      chartHeight = containerRect.height;
+    }
+
+    // Create bar data object
+    const barData: TimeLineBarData = {
+      id,
+      start,
+      end,
+      label,
+      color,
+      backgroundColor,
+      textColor,
+    };
+
+    // Calculate relative positions (0-1)
+    const relativePosition = {
+      start: slotStart,
+      end: slotEnd,
+      center: (slotStart + slotEnd) / 2,
+    };
+
+    // Get bar dimensions and position
+    const dimensions = {
+      width: barRect.width,
+      height: barRect.height,
+      left: barRect.left,
+      top: barRect.top,
+      chartWidth,
+      chartHeight,
+    }; // Call the click handler with comprehensive data
+    onBarClick({
+      bar: barData,
+      relativePosition,
+      dimensions,
+      controller: controller!,
+      event,
+    });
+  };
 
   return (
     <div
@@ -93,6 +179,7 @@ const TimeLineBar = (props: {
             onBarElementRef(id, element);
           }
         }}
+        onClick={handleBarClick}
         data-test-id={`bar-${id}`}
         tabIndex={0}
         title={label}
@@ -113,6 +200,7 @@ const TimeLineBar = (props: {
           backgroundColor: backgroundColor || "#3b82f6",
           color: textColor || "white",
           border: `1px solid ${color || backgroundColor || "#3b82f6"}`,
+          cursor: onBarClick ? "pointer" : "default",
         }}
       >
         {props.children}
@@ -131,9 +219,10 @@ export const TimeLineChart = forwardRef<
     renderTitle?: (time: TTimeInterval) => string;
     interval: TTimeIntervalType;
     bars?: TimeLineBarData[];
+    onBarClick?: (clickData: BarClickData) => void;
   }
 >((props, ref) => {
-  const { startDate, endDate, interval, bars } = props;
+  const { startDate, endDate, interval, bars, onBarClick } = props;
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
 
@@ -304,6 +393,9 @@ export const TimeLineChart = forwardRef<
               textColor={bar.textColor}
               range={{ start: props.startDate, end: props.endDate }}
               onBarElementRef={handleBarElementRef}
+              onBarClick={onBarClick}
+              chartContainerRef={chartElementRef}
+              controller={controllerRef.current}
             >
               {bar.label}
             </TimeLineBar>
