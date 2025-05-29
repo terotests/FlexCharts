@@ -1,0 +1,29 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg-gradient-small" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4e79a7;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#59a14f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f28e2c;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <circle cx="8" cy="8" r="7.5" fill="url(#bg-gradient-small)" stroke="#2c3e50" stroke-width="1"/>
+  
+  <!-- Chart elements -->
+  <!-- Time axis line -->
+  <line x1="3" y1="12" x2="13" y2="12" stroke="white" stroke-width="0.8" opacity="0.8"/>
+  
+  <!-- Timeline bars -->
+  <rect x="4" y="9" width="3" height="2" fill="white" opacity="0.9" rx="0.5"/>
+  <rect x="6" y="7" width="4" height="2" fill="white" opacity="0.9" rx="0.5"/>
+  <rect x="8" y="5" width="3.5" height="2" fill="white" opacity="0.9" rx="0.5"/>
+  
+  <!-- Data points -->
+  <circle cx="5.5" cy="8" r="0.8" fill="white" opacity="0.9"/>
+  <circle cx="8" cy="6" r="0.8" fill="white" opacity="0.9"/>
+  <circle cx="9.75" cy="4" r="0.8" fill="white" opacity="0.9"/>
+  
+  <!-- Connecting line -->
+  <path d="M5.5,8 Q6.75,7 8,6 Q8.875,5 9.75,4" stroke="white" stroke-width="0.8" fill="none" opacity="0.7"/>
+</svg>
