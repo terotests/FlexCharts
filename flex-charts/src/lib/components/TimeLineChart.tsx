@@ -1,4 +1,10 @@
-import { useMemo } from "react";
+import {
+  useMemo,
+  useEffect,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import {
   calculateTimeSlot,
   parseTimeString,
@@ -6,6 +12,7 @@ import {
   type TTimeInterval,
   type TTimeIntervalType,
 } from "../time";
+import { TimeLineChartController } from "../controllers/TimeLineChartController";
 
 import "./TimeLineChart.css"; // Assuming you have a CSS file for styling
 
@@ -98,18 +105,27 @@ const TimeLineBar = (props: {
   );
 };
 
-export const TimeLineChart = (props: {
-  startDate: string;
-  endDate: string;
-  width?: string;
-  labelFontSize?: string;
-  renderTitle?: (time: TTimeInterval) => string;
-  interval: TTimeIntervalType;
-  bars?: TimeLineBarData[];
-}) => {
+export const TimeLineChart = forwardRef<
+  TimeLineChartController,
+  {
+    startDate: string;
+    endDate: string;
+    width?: string;
+    labelFontSize?: string;
+    renderTitle?: (time: TTimeInterval) => string;
+    interval: TTimeIntervalType;
+    bars?: TimeLineBarData[];
+  }
+>((props, ref) => {
   const { startDate, endDate, interval, bars } = props;
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
+
+  // Create controller instance
+  const controllerRef = useRef<TimeLineChartController>(
+    new TimeLineChartController()
+  );
+  const chartElementRef = useRef<HTMLDivElement>(null);
 
   // Use provided bars or empty array if no bars provided
   const barData = bars || [];
@@ -124,11 +140,32 @@ export const TimeLineChart = (props: {
     );
   }, [start, end, interval]);
 
+  // Initialize controller when component mounts or data changes
+  useEffect(() => {
+    const controller = controllerRef.current;
+    controller.initialize(
+      startDate,
+      endDate,
+      barData.length,
+      chartElementRef.current
+    );
+  }, [startDate, endDate, barData.length]);
+
+  // Update element reference when DOM changes
+  useEffect(() => {
+    if (chartElementRef.current) {
+      controllerRef.current.updateElement(chartElementRef.current);
+    }
+  });
+
+  // Expose controller to parent component via ref
+  useImperativeHandle(ref, () => controllerRef.current, []);
+
   // Here you can implement the logic to display the date range
   // based on the provided startDate, endDate, and interval.
-
   return (
     <div
+      ref={chartElementRef}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -194,9 +231,9 @@ export const TimeLineChart = (props: {
                 {props.renderTitle ? props.renderTitle(slot) : slot.value}
               </div>
             ))}
-          </div>
+          </div>{" "}
         </div>
       </div>
     </div>
   );
-};
+});
