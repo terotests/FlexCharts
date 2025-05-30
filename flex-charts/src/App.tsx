@@ -9,11 +9,80 @@ import {
 } from "./lib/components/TimeLineChart";
 import { TimeLineChartController } from "./lib/controllers/TimeLineChartController";
 import { customBars } from "./lib/data/customBars";
+import {
+  britishMonarchs,
+  britishMonarchsMetadata,
+} from "./lib/data/britishMonarchs";
+import {
+  type TTimeInterval,
+  type TTimeIntervalTypeWithDecades,
+} from "./lib/time";
+
+// Dataset options for the dropdown
+const datasetOptions = [
+  {
+    id: "custom",
+    name: "Custom Projects",
+    data: customBars,
+    startDate: "1992",
+    endDate: "12/2025",
+    interval: "Y" as const,
+    renderTitle: (time: TTimeInterval) =>
+      `${time.value.toString().slice(0, 4)}`,
+  },
+  {
+    id: "monarchs",
+    name: "British Monarchs (1558-2025)",
+    data: britishMonarchs,
+    startDate: britishMonarchsMetadata.startDate,
+    endDate: britishMonarchsMetadata.endDate,
+    interval: britishMonarchsMetadata.interval,
+    renderTitle: (time: TTimeInterval) => `${time.value}`,
+  },
+  {
+    id: "monarchs-decades",
+    name: "British Monarchs by Decades",
+    data: britishMonarchs,
+    startDate: "1550",
+    endDate: "2030",
+    interval: "10Y" as TTimeIntervalTypeWithDecades,
+    renderTitle: (time: TTimeInterval) => `${time.value}s`,
+  },
+  {
+    id: "monarchs-centuries",
+    name: "British Monarchs by Half-Centuries",
+    data: britishMonarchs,
+    startDate: "1550",
+    endDate: "2030",
+    interval: "50Y" as TTimeIntervalTypeWithDecades,
+    renderTitle: (time: TTimeInterval) => `${time.value}-${time.value + 49}`,
+  },
+];
+
+// Interval options for the dropdown
+const intervalOptions: {
+  value: TTimeIntervalTypeWithDecades;
+  label: string;
+  description: string;
+}[] = [
+  { value: "Y", label: "Years", description: "Annual intervals" },
+  { value: "Q", label: "Quarters", description: "Quarterly intervals" },
+  { value: "M", label: "Months", description: "Monthly intervals" },
+  { value: "W", label: "Weeks", description: "Weekly intervals" },
+  { value: "D", label: "Days", description: "Daily intervals" },
+  { value: "5Y", label: "5 Years", description: "5-year intervals" },
+  { value: "10Y", label: "Decades", description: "10-year intervals" },
+  { value: "50Y", label: "Half-Centuries", description: "50-year intervals" },
+  { value: "100Y", label: "Centuries", description: "100-year intervals" },
+];
 
 function App() {
   const { theme, toggleTheme } = useChartTheme();
   const chartRef = useRef<TimeLineChartController>(null);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const [selectedDataset, setSelectedDataset] = useState(datasetOptions[0]);
+  const [customInterval, setCustomInterval] =
+    useState<TTimeIntervalTypeWithDecades>(datasetOptions[0].interval);
   const [dimensions, setDimensions] = useState<{
     visible: { width: number; height: number } | null;
     total: { width: number; height: number } | null;
@@ -206,24 +275,155 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
               End →
             </button>
           </div>
-        )}
+        )}{" "}
       </header>
+      {/* Dataset Selector */}
+      <div
+        className="dataset-selector"
+        style={{
+          padding: "20px 0",
+          borderBottom: "1px solid #eaeaea",
+          marginBottom: "20px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            flexWrap: "wrap",
+          }}
+        >
+          <label
+            style={{
+              fontSize: "14px",
+              fontWeight: "bold",
+              minWidth: "120px",
+            }}
+          >
+            📊 Select Dataset:
+          </label>
+          <select
+            value={selectedDataset.id}
+            onChange={(e) => {
+              const newDataset = datasetOptions.find(
+                (opt) => opt.id === e.target.value
+              );
+              if (newDataset) {
+                setSelectedDataset(newDataset);
+                setCustomInterval(newDataset.interval); // Update interval when dataset changes
+              }
+            }}
+            style={{
+              padding: "8px 12px",
+              fontSize: "14px",
+              borderRadius: "4px",
+              border: `1px solid ${theme.mode === "light" ? "#ddd" : "#555"}`,
+              backgroundColor: theme.mode === "light" ? "white" : "#2d3748",
+              color: theme.mode === "light" ? "black" : "white",
+              minWidth: "200px",
+            }}
+          >
+            {datasetOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Interval Selector */}
+          <label
+            style={{
+              fontSize: "14px",
+              fontWeight: "bold",
+              minWidth: "80px",
+              marginLeft: "20px",
+            }}
+          >
+            ⏱️ Interval:
+          </label>
+          <select
+            value={customInterval}
+            onChange={(e) => {
+              setCustomInterval(e.target.value as TTimeIntervalTypeWithDecades);
+            }}
+            style={{
+              padding: "8px 12px",
+              fontSize: "14px",
+              borderRadius: "4px",
+              border: `1px solid ${theme.mode === "light" ? "#ddd" : "#555"}`,
+              backgroundColor: theme.mode === "light" ? "white" : "#2d3748",
+              color: theme.mode === "light" ? "black" : "white",
+              minWidth: "120px",
+            }}
+          >
+            {intervalOptions.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+                title={option.description}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
+
+          {/* Show color legend for British Monarchs */}
+          {selectedDataset.id === "monarchs" && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginLeft: "12px",
+                fontSize: "12px",
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ fontWeight: "bold" }}>Houses:</span>
+              {Object.entries(britishMonarchsMetadata.colorLegend).map(
+                ([color, house]) => (
+                  <div
+                    key={color}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        backgroundColor: color,
+                        borderRadius: "2px",
+                        border: "1px solid #ccc",
+                      }}
+                    />
+                    <span style={{ fontSize: "11px" }}>{house}</span>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </div>
+      </div>
       <main>
         {" "}
         <div className="chart-container">
           {" "}
           <TimeLineChart
             ref={chartRef}
-            startDate="1992"
-            endDate="12/2025"
-            interval="Y"
+            startDate={selectedDataset.startDate}
+            endDate={selectedDataset.endDate}
+            interval={customInterval}
             width="100%"
             labelFontSize="10px"
-            key="1"
-            bars={customBars}
+            key={selectedDataset.id} // Force re-render when dataset changes
+            bars={selectedDataset.data}
             onBarClick={handleBarClick}
             onChartHover={handleChartHover}
-            renderTitle={(time) => `${time.value.toString().slice(0, 4)}`}
+            renderTitle={selectedDataset.renderTitle}
           />
         </div>
         {/* Chart Controls - moved below chart for better UX */}
