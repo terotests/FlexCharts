@@ -199,20 +199,88 @@ function ControlledTimeline() {
 }
 ```
 
+### Event Handling
+
+FlexCharts provides comprehensive event handling for user interactions:
+
+```tsx
+import {
+  TimeLineChart,
+  type BarClickData,
+  type RowClickData,
+  type ChartHoverData,
+} from "@terotests/flex-charts";
+
+function InteractiveTimeline() {
+  const handleBarClick = (clickData: BarClickData) => {
+    console.log("Bar clicked:", clickData.bar.label);
+    console.log("Position:", clickData.relativePosition);
+    console.log("Dimensions:", clickData.dimensions);
+    // Access chart controller for programmatic control
+    clickData.controller.scrollToCenter();
+  };
+
+  const handleRowClick = (clickData: RowClickData) => {
+    console.log("Row clicked:", clickData.bar.label);
+    console.log("Row container dimensions:", clickData.dimensions);
+    // Same data structure as BarClickData for consistency
+  };
+
+  const handleChartHover = (hoverData: ChartHoverData) => {
+    console.log("Mouse position:", hoverData.relativePosition);
+    if (hoverData.activeTimeSlot) {
+      console.log("Time slot:", hoverData.activeTimeSlot.value);
+    }
+  };
+
+  return (
+    <TimeLineChart
+      startDate="2020"
+      endDate="2025"
+      interval="Y"
+      bars={projectData}
+      onBarClick={handleBarClick}
+      onRowClick={handleRowClick}
+      onChartHover={handleChartHover}
+    />
+  );
+}
+```
+
+#### Event Data Interfaces
+
+**BarClickData / RowClickData:**
+
+- `bar: TimeLineBarData` - The clicked bar's data
+- `relativePosition: { start, end, center }` - Position within chart (0-1)
+- `dimensions: { width, height, left, top, chartWidth, chartHeight }` - Element dimensions
+- `controller: TimeLineChartController` - Chart controller reference
+- `event: React.MouseEvent` - Original mouse event
+
+**ChartHoverData:**
+
+- `relativePosition: number` - Mouse position within chart (0-1)
+- `pixelPosition: { x, y }` - Pixel coordinates within chart
+- `activeTimeSlot: { index, value, start, end } | null` - Active time slot info
+- `controller: TimeLineChartController` - Chart controller reference
+- `event: React.MouseEvent` - Original mouse event
+
 ## Component Props
 
 ### TimeLineChart Props
 
-| Prop            | Type                                | Required | Description                                                                                                |
-| --------------- | ----------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
-| `startDate`     | `string`                            | Yes      | Start date of the timeline (e.g., "2020", "01/2020")                                                       |
-| `endDate`       | `string`                            | Yes      | End date of the timeline (e.g., "2025", "12/2025")                                                         |
-| `interval`      | `TTimeIntervalType`                 | Yes      | Time interval (`"Y"`, `"M"`, `"Q"`, `"W"`, `"D"`, `"H"`, `"m"`, `"s"`, `"5Y"`, `"10Y"`, `"50Y"`, `"100Y"`) |
-| `bars`          | `TimeLineBarData[]`                 | No       | Array of bar data to display                                                                               |
-| `width`         | `string`                            | No       | Width of the component (default: "100%")                                                                   |
-| `labelFontSize` | `string`                            | No       | Font size for time slot labels (default: "12px")                                                           |
-| `renderTitle`   | `(time: TTimeInterval) => string`   | No       | Custom function to render time slot labels                                                                 |
-| `onBarClick`    | `(clickData: BarClickData) => void` | No       | Callback function called when a bar is clicked                                                             |
+| Prop            | Type                                  | Required | Description                                                                                                |
+| --------------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `startDate`     | `string`                              | Yes      | Start date of the timeline (e.g., "2020", "01/2020")                                                       |
+| `endDate`       | `string`                              | Yes      | End date of the timeline (e.g., "2025", "12/2025")                                                         |
+| `interval`      | `TTimeIntervalType`                   | Yes      | Time interval (`"Y"`, `"M"`, `"Q"`, `"W"`, `"D"`, `"H"`, `"m"`, `"s"`, `"5Y"`, `"10Y"`, `"50Y"`, `"100Y"`) |
+| `bars`          | `TimeLineBarData[]`                   | No       | Array of bar data to display                                                                               |
+| `width`         | `string`                              | No       | Width of the component (default: "100%")                                                                   |
+| `labelFontSize` | `string`                              | No       | Font size for time slot labels (default: "12px")                                                           |
+| `renderTitle`   | `(time: TTimeInterval) => string`     | No       | Custom function to render time slot labels                                                                 |
+| `onBarClick`    | `(clickData: BarClickData) => void`   | No       | Callback function called when a bar is clicked                                                             |
+| `onRowClick`    | `(clickData: RowClickData) => void`   | No       | Callback function called when a row container is clicked                                                   |
+| `onChartHover`  | `(hoverData: ChartHoverData) => void` | No       | Callback function called when mouse hovers over the chart                                                  |
 
 ### TimeLineBarData Interface
 

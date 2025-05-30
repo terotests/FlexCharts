@@ -14,6 +14,7 @@ export {
   TimeLineChart,
   type TimeLineBarData,
   type BarClickData,
+  type RowClickData,
   type ChartHoverData,
 } from "./components/TimeLineChart";
 

@@ -68,6 +68,34 @@ export interface ChartHoverData {
   event: React.MouseEvent<HTMLDivElement>;
 }
 
+// Type definitions for row click events
+export interface RowClickData {
+  // Bar data that was clicked (same as BarClickData for consistency)
+  bar: TimeLineBarData;
+  // Position within the chart (0-1, where 0 is start of chart, 1 is end)
+  relativePosition: {
+    start: number; // Position where bar starts (0-1)
+    end: number; // Position where bar ends (0-1)
+    center: number; // Center position of the bar (0-1)
+  };
+  // Dimensions and positioning of the clicked row container
+  dimensions: {
+    // Row container's pixel dimensions
+    width: number;
+    height: number;
+    // Row container's absolute position in viewport
+    left: number;
+    top: number;
+    // Chart container dimensions for context
+    chartWidth: number;
+    chartHeight: number;
+  };
+  // Chart controller reference for programmatic chart control
+  controller: TimeLineChartController;
+  // Original mouse event
+  event: React.MouseEvent<HTMLDivElement>;
+}
+
 // Type definitions for the bar data
 export interface TimeLineBarData {
   id?: string | number;
@@ -95,6 +123,7 @@ const TimeLineBar = (props: {
   };
   onBarElementRef?: (id: string | number, element: HTMLElement | null) => void;
   onBarClick?: (clickData: BarClickData) => void;
+  onRowClick?: (clickData: RowClickData) => void;
   chartContainerRef?: React.RefObject<HTMLDivElement | null>;
   controller?: TimeLineChartController;
 }) => {
@@ -109,6 +138,7 @@ const TimeLineBar = (props: {
     textColor,
     onBarElementRef,
     onBarClick,
+    onRowClick,
     chartContainerRef,
     controller,
   } = props;
@@ -206,12 +236,63 @@ const TimeLineBar = (props: {
     });
   };
 
+  // Handle row container click
+  const handleRowClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!onRowClick || !controller) return;
+
+    // Get container dimensions and chart dimensions
+    const containerRect = event.currentTarget.getBoundingClientRect();
+    const chartWidth =
+      chartContainerRef?.current?.getBoundingClientRect().width ||
+      containerRect.width;
+    const chartHeight =
+      chartContainerRef?.current?.getBoundingClientRect().height ||
+      containerRect.height;
+
+    // Create bar data object
+    const barData: TimeLineBarData = {
+      id,
+      start,
+      end,
+      label,
+      color,
+      backgroundColor,
+      textColor,
+    };
+
+    // Calculate relative positions (0-1) - same as bar click for consistency
+    const relativePosition = {
+      start: slotStart,
+      end: slotEnd,
+      center: (slotStart + slotEnd) / 2,
+    };
+
+    // Get row container dimensions and position
+    const dimensions = {
+      width: containerRect.width,
+      height: containerRect.height,
+      left: containerRect.left,
+      top: containerRect.top,
+      chartWidth,
+      chartHeight,
+    };
+
+    // Call the row click handler with comprehensive data
+    onRowClick({
+      bar: barData,
+      relativePosition,
+      dimensions,
+      controller: controller!,
+      event,
+    });
+  };
   return (
     <div
       style={{
         width: "100%",
       }}
       className="timeline-bar-container"
+      onClick={handleRowClick}
     >
       {" "}
       <div
@@ -272,11 +353,19 @@ export const TimeLineChart = forwardRef<
     interval: TTimeIntervalTypeWithDecades;
     bars?: TimeLineBarData[];
     onBarClick?: (clickData: BarClickData) => void;
+    onRowClick?: (clickData: RowClickData) => void;
     onChartHover?: (hoverData: ChartHoverData) => void;
   }
 >((props, ref) => {
-  const { startDate, endDate, interval, bars, onBarClick, onChartHover } =
-    props;
+  const {
+    startDate,
+    endDate,
+    interval,
+    bars,
+    onBarClick,
+    onRowClick,
+    onChartHover,
+  } = props;
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
   // Scroll state management
@@ -576,7 +665,7 @@ export const TimeLineChart = forwardRef<
                 data-test-id={`grid-line-${index}`}
               />
             ))}
-          </div>
+          </div>{" "}
           <div className="time-bars">
             {barData.map((bar) => (
               <TimeLineBar
@@ -591,6 +680,7 @@ export const TimeLineChart = forwardRef<
                 range={{ start: props.startDate, end: props.endDate }}
                 onBarElementRef={handleBarElementRef}
                 onBarClick={onBarClick}
+                onRowClick={onRowClick}
                 chartContainerRef={chartElementRef}
                 controller={controllerRef.current}
               >

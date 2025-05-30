@@ -107,6 +107,7 @@ import { TimeLineChart, type TimeLineBarData } from "@terotests/flex-charts";
 | `labelFontSize` | `string`                              | No       | Font size for time slot labels (default: "12px")                                                                                                     |
 | `renderTitle`   | `(time: TTimeInterval) => string`     | No       | Custom function to render time slot labels                                                                                                           |
 | `onBarClick`    | `(clickData: BarClickData) => void`   | No       | Callback function called when a bar is clicked. Receives comprehensive click data including bar info, position, dimensions, and controller reference |
+| `onRowClick`    | `(clickData: RowClickData) => void`   | No       | Callback function called when a row container is clicked. Receives same data structure as BarClickData for consistency                               |
 | `onChartHover`  | `(hoverData: ChartHoverData) => void` | No       | Callback function called when mouse moves over the chart. Receives hover position and active time slot information                                   |
 
 #### TimeLineBarData Interface
@@ -143,6 +144,36 @@ interface BarClickData {
     height: number; // Bar's pixel height
     left: number; // Bar's absolute position in viewport
     top: number; // Bar's absolute position in viewport
+    chartWidth: number; // Chart container width for context
+    chartHeight: number; // Chart container height for context
+  };
+  // Chart controller reference for programmatic chart control
+  controller: TimeLineChartController;
+  // Original mouse event
+  event: React.MouseEvent<HTMLDivElement>;
+}
+```
+
+#### RowClickData Interface
+
+The `RowClickData` interface provides the same comprehensive information as `BarClickData` when a row container is clicked, ensuring consistency in event handling:
+
+```tsx
+interface RowClickData {
+  // Bar data that was clicked (same as BarClickData for consistency)
+  bar: TimeLineBarData;
+  // Position within the chart (0-1, where 0 is start of chart, 1 is end)
+  relativePosition: {
+    start: number; // Position where bar starts (0-1)
+    end: number; // Position where bar ends (0-1)
+    center: number; // Center position of the bar (0-1)
+  };
+  // Dimensions and positioning of the clicked row container
+  dimensions: {
+    width: number; // Row container's pixel width
+    height: number; // Row container's pixel height
+    left: number; // Row container's absolute position in viewport
+    top: number; // Row container's absolute position in viewport
     chartWidth: number; // Chart container width for context
     chartHeight: number; // Chart container height for context
   };
