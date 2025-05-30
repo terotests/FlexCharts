@@ -230,7 +230,45 @@ interface TimeLineBarData {
 
 ## Theming
 
-Customize the appearance of your charts:
+FlexCharts uses CSS custom properties (variables) for theming. You can customize the appearance by overriding these CSS variables:
+
+```css
+:root {
+  /* Bar styling */
+  --bar-bg: #f4f6fa;
+  --bar-border: #b0b8c9;
+  --bar-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.08);
+  --bar-text: #25324d;
+  --bar-hover-bg: #e3e8f0;
+  --bar-hover-border: #4e79a7;
+  --bar-hover-shadow: 0 4px 16px 0 rgba(40, 60, 90, 0.13);
+
+  /* Time slot styling */
+  --slot-bg: #e3e8f0;
+  --slot-text: #4e79a7;
+  --slot-border: #b0b8c9;
+
+  /* Grid lines */
+  --grid-line-color: rgba(176, 184, 201, 0.3);
+  --grid-line-width: 1px;
+  --grid-line-style: solid;
+  --grid-background: transparent;
+  --grid-hover-color: rgba(78, 121, 167, 0.2);
+
+  /* Scrollbar styling */
+  --scrollbar-track-color: rgba(228, 230, 235, 0.3);
+  --scrollbar-thumb-color: rgba(78, 121, 167, 0.4);
+  --scrollbar-thumb-hover-color: rgba(78, 121, 167, 0.6);
+  --scrollbar-thumb-active-color: rgba(78, 121, 167, 0.8);
+  --scrollbar-size: 8px;
+  --scrollbar-border-radius: 4px;
+
+  /* Time slots transparency when transformed */
+  --timeslots-transformed-opacity: 0.9;
+}
+```
+
+### Using the Theme Hook
 
 ```tsx
 import { useChartTheme } from "@terotests/flex-charts";
@@ -239,7 +277,7 @@ function App() {
   const { theme, toggleTheme, setThemeMode } = useChartTheme("light");
 
   return (
-    <div style={{ backgroundColor: theme.colors.background }}>
+    <div>
       <button onClick={toggleTheme}>Toggle Theme</button>
       <TimeLineChart
         startDate="2020"
@@ -249,6 +287,44 @@ function App() {
       />
     </div>
   );
+}
+```
+
+### CSS Classes Reference
+
+FlexCharts components use specific CSS classes that you can target for custom styling:
+
+| CSS Class                          | Component     | Description                                                |
+| ---------------------------------- | ------------- | ---------------------------------------------------------- |
+| `.bar`                             | TimeLineChart | Individual timeline bars representing data periods         |
+| `.time-slots`                      | TimeLineChart | Container for time slot markers                            |
+| `.time-slot`                       | TimeLineChart | Individual time slot markers (circular indicators)         |
+| `.time-slots-transformed`          | TimeLineChart | Time slots container when transformed/moved for visibility |
+| `.time-grid`                       | TimeLineChart | Grid lines container overlaying the timeline               |
+| `.time-grid-line`                  | TimeLineChart | Individual vertical grid lines                             |
+| `.timeline-chart-scroll-container` | TimeLineChart | Main scrollable container for the timeline                 |
+
+**Example of custom styling:**
+
+```css
+/* Custom bar styling */
+.bar {
+  --bar-bg: #your-custom-color;
+  --bar-border: #your-border-color;
+  border-radius: 8px; /* Override default rounded style */
+}
+
+/* Custom time slot styling */
+.time-slot {
+  --slot-bg: #your-slot-color;
+  width: 32px; /* Make slots larger */
+  height: 32px;
+}
+
+/* Custom grid styling */
+.time-grid-line {
+  --grid-line-color: rgba(255, 0, 0, 0.2); /* Red grid lines */
+  --grid-line-width: 2px; /* Thicker lines */
 }
 ```
 
