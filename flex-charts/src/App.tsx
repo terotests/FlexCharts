@@ -68,8 +68,6 @@ const intervalOptions: {
   { value: "Y", label: "Years", description: "Annual intervals" },
   { value: "Q", label: "Quarters", description: "Quarterly intervals" },
   { value: "M", label: "Months", description: "Monthly intervals" },
-  { value: "W", label: "Weeks", description: "Weekly intervals" },
-  { value: "D", label: "Days", description: "Daily intervals" },
   { value: "5Y", label: "5 Years", description: "5-year intervals" },
   { value: "10Y", label: "Decades", description: "10-year intervals" },
   { value: "50Y", label: "Half-Centuries", description: "50-year intervals" },
