@@ -14,6 +14,10 @@ import {
   britishMonarchsMetadata,
 } from "./lib/data/britishMonarchs";
 import {
+  finnishPresidents,
+  finnishPresidentsMetadata,
+} from "./lib/data/finnishPresidents";
+import {
   type TTimeInterval,
   type TTimeIntervalTypeWithDecades,
 } from "./lib/time";
@@ -37,6 +41,15 @@ const datasetOptions = [
     startDate: britishMonarchsMetadata.startDate,
     endDate: britishMonarchsMetadata.endDate,
     interval: britishMonarchsMetadata.interval,
+    renderTitle: (time: TTimeInterval) => `${time.value}`,
+  },
+  {
+    id: "finnish-presidents",
+    name: "Finnish Presidents (1919-2025)",
+    data: finnishPresidents,
+    startDate: finnishPresidentsMetadata.startDate,
+    endDate: finnishPresidentsMetadata.endDate,
+    interval: finnishPresidentsMetadata.interval,
     renderTitle: (time: TTimeInterval) => `${time.value}`,
   },
   {
@@ -328,7 +341,6 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
               </option>
             ))}
           </select>
-
           {/* Interval Selector */}
           <label
             style={{
@@ -364,8 +376,7 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
                 {option.label}
               </option>
             ))}
-          </select>
-
+          </select>{" "}
           {/* Show color legend for British Monarchs */}
           {selectedDataset.id === "monarchs" && (
             <div
@@ -404,6 +415,44 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
               )}
             </div>
           )}
+          {/* Show color legend for Finnish Presidents */}
+          {selectedDataset.id === "finnish-presidents" && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginLeft: "12px",
+                fontSize: "12px",
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ fontWeight: "bold" }}>Presidents:</span>
+              {Object.entries(finnishPresidentsMetadata.colorLegend).map(
+                ([color, president]) => (
+                  <div
+                    key={color}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        backgroundColor: color,
+                        borderRadius: "2px",
+                        border: "1px solid #ccc",
+                      }}
+                    />
+                    <span style={{ fontSize: "11px" }}>{president}</span>
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
       </div>
       <main>
@@ -415,7 +464,7 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
             startDate={selectedDataset.startDate}
             endDate={selectedDataset.endDate}
             interval={customInterval}
-            width="100%"
+            width="80%"
             labelFontSize="10px"
             key={selectedDataset.id} // Force re-render when dataset changes
             bars={selectedDataset.data}

@@ -210,10 +210,8 @@ const TimeLineBar = (props: {
     <div
       style={{
         width: "100%",
-        height: "20px",
-        position: "relative",
-        pointerEvents: "none", // Prevent pointer events on the container
       }}
+      className="timeline-bar-container"
     >
       {" "}
       <div
@@ -232,14 +230,12 @@ const TimeLineBar = (props: {
         role="img"
         aria-description={`${label}: ${start} - ${end}`}
         style={{
-          left: prosStart,
+          marginLeft: prosStart,
           top: "0px",
           width: prosEnd,
-          height: "20px",
           borderRadius: "10px",
           overflow: "hidden",
           display: "flex",
-          position: "absolute",
           justifyContent: textAlignment,
           alignItems: "center",
           backgroundColor: backgroundColor || "#3b82f6",
@@ -299,7 +295,6 @@ export const TimeLineChart = forwardRef<
 
   const containerElementRef = useRef<HTMLDivElement>(null);
   const timeSlotElementsRef = useRef<HTMLElement[]>([]);
-
   // Use provided bars or empty array if no bars provided
   const barData = bars || [];
 
@@ -312,6 +307,13 @@ export const TimeLineChart = forwardRef<
       interval
     );
   }, [start, end, interval]);
+  // Calculate number of horizontal grid lines based on chart content
+  const horizontalGridLines = useMemo(() => {
+    // Create horizontal lines that match the number of bars (rows) plus one for the bottom boundary
+    // This ensures each bar has its own row with proper grid separation
+    const gridLineCount = barData.length + 1;
+    return Array.from({ length: gridLineCount }, (_, index) => index);
+  }, [barData.length]);
 
   // Handle bar element references
   const handleBarElementRef = (
@@ -549,6 +551,7 @@ export const TimeLineChart = forwardRef<
           flexDirection: "column",
           overflow: "auto",
           width: "100%",
+          height: "100%",
           scrollBehavior: "smooth",
         }}
         className="timeline-chart-scroll-container"
@@ -568,9 +571,10 @@ export const TimeLineChart = forwardRef<
             position: "relative",
             overflow: "hidden",
             minWidth: "100%",
+            height: "100%",
           }}
         >
-          {/* Grid lines container */}
+          {/* Vertical grid lines container */}
           <div className="time-grid">
             {slots.map((_, index) => (
               <div
@@ -579,26 +583,28 @@ export const TimeLineChart = forwardRef<
                 data-test-id={`grid-line-${index}`}
               />
             ))}
-          </div>{" "}
-          {barData.map((bar) => (
-            <TimeLineBar
-              key={bar.id || `${bar.start}-${bar.end}-${bar.label}`}
-              id={bar.id}
-              start={bar.start}
-              end={bar.end}
-              label={bar.label}
-              color={bar.color}
-              backgroundColor={bar.backgroundColor}
-              textColor={bar.textColor}
-              range={{ start: props.startDate, end: props.endDate }}
-              onBarElementRef={handleBarElementRef}
-              onBarClick={onBarClick}
-              chartContainerRef={chartElementRef}
-              controller={controllerRef.current}
-            >
-              {bar.label}
-            </TimeLineBar>
-          ))}{" "}
+          </div>
+          <div className="time-bars">
+            {barData.map((bar) => (
+              <TimeLineBar
+                key={bar.id || `${bar.start}-${bar.end}-${bar.label}`}
+                id={bar.id}
+                start={bar.start}
+                end={bar.end}
+                label={bar.label}
+                color={bar.color}
+                backgroundColor={bar.backgroundColor}
+                textColor={bar.textColor}
+                range={{ start: props.startDate, end: props.endDate }}
+                onBarElementRef={handleBarElementRef}
+                onBarClick={onBarClick}
+                chartContainerRef={chartElementRef}
+                controller={controllerRef.current}
+              >
+                {bar.label}
+              </TimeLineBar>
+            ))}{" "}
+          </div>
           <div
             className={`time-slots ${
               isTimeSlotsTransformed() ? "time-slots-transformed" : ""
