@@ -44,7 +44,7 @@ const datasetOptions = [
     name: "British Monarchs by Decades",
     data: britishMonarchs,
     startDate: "1550",
-    endDate: "2030",
+    endDate: "2050",
     interval: "10Y" as TTimeIntervalTypeWithDecades,
     renderTitle: (time: TTimeInterval) => `${time.value}s`,
   },

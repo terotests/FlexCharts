@@ -113,6 +113,11 @@ const TimeLineBar = (props: {
     controller,
   } = props;
 
+  const [textAlignment, setTextAlignment] = useState<"center" | "flex-start">(
+    "center"
+  );
+  const barRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
   const startTime = useMemo(() => parseTimeString(start), [start]);
   const endTime = useMemo(() => parseTimeString(end), [end]);
 
@@ -132,6 +137,21 @@ const TimeLineBar = (props: {
   );
   const prosStart = `${(slotStart * 100).toFixed(1)}%`;
   const prosEnd = `${((slotEnd - slotStart) * 100).toFixed(1)}%`;
+
+  // Check if text fits and adjust alignment accordingly
+  useEffect(() => {
+    if (barRef.current && textRef.current) {
+      const barWidth = barRef.current.offsetWidth;
+      const textWidth = textRef.current.scrollWidth;
+
+      // Add some padding tolerance (10px) to account for padding/margins
+      if (textWidth > barWidth - 10) {
+        setTextAlignment("flex-start");
+      } else {
+        setTextAlignment("center");
+      }
+    }
+  }, [label, prosEnd]); // Re-run when label or bar width changes
 
   // Handle bar click
   const handleBarClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -199,6 +219,7 @@ const TimeLineBar = (props: {
       <div
         className="bar"
         ref={(element) => {
+          barRef.current = element;
           if (onBarElementRef && id !== undefined) {
             onBarElementRef(id, element);
           }
@@ -219,16 +240,26 @@ const TimeLineBar = (props: {
           overflow: "hidden",
           display: "flex",
           position: "absolute",
-          justifyContent: "center",
+          justifyContent: textAlignment,
           alignItems: "center",
           backgroundColor: backgroundColor || "#3b82f6",
           color: textColor || "white",
           border: `1px solid ${color || backgroundColor || "#3b82f6"}`,
           cursor: onBarClick ? "pointer" : "default",
           pointerEvents: onBarClick ? "auto" : "none", // Enable pointer events only if onBarClick is provided
+          paddingLeft: textAlignment === "flex-start" ? "8px" : "0px", // Add padding when left-aligned
         }}
       >
-        {props.children}
+        <div
+          ref={textRef}
+          style={{
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {props.children}
+        </div>
       </div>
     </div>
   );
