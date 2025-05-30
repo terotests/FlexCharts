@@ -203,16 +203,16 @@ function ControlledTimeline() {
 
 ### TimeLineChart Props
 
-| Prop            | Type                                | Required | Description                                             |
-| --------------- | ----------------------------------- | -------- | ------------------------------------------------------- |
-| `startDate`     | `string`                            | Yes      | Start date of the timeline (e.g., "2020", "01/2020")    |
-| `endDate`       | `string`                            | Yes      | End date of the timeline (e.g., "2025", "12/2025")      |
+| Prop            | Type                                | Required | Description                                                                                                |
+| --------------- | ----------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `startDate`     | `string`                            | Yes      | Start date of the timeline (e.g., "2020", "01/2020")                                                       |
+| `endDate`       | `string`                            | Yes      | End date of the timeline (e.g., "2025", "12/2025")                                                         |
 | `interval`      | `TTimeIntervalType`                 | Yes      | Time interval (`"Y"`, `"M"`, `"Q"`, `"W"`, `"D"`, `"H"`, `"m"`, `"s"`, `"5Y"`, `"10Y"`, `"50Y"`, `"100Y"`) |
-| `bars`          | `TimeLineBarData[]`                 | No       | Array of bar data to display                            |
-| `width`         | `string`                            | No       | Width of the component (default: "100%")                |
-| `labelFontSize` | `string`                            | No       | Font size for time slot labels (default: "12px")        |
-| `renderTitle`   | `(time: TTimeInterval) => string`   | No       | Custom function to render time slot labels              |
-| `onBarClick`    | `(clickData: BarClickData) => void` | No       | Callback function called when a bar is clicked          |
+| `bars`          | `TimeLineBarData[]`                 | No       | Array of bar data to display                                                                               |
+| `width`         | `string`                            | No       | Width of the component (default: "100%")                                                                   |
+| `labelFontSize` | `string`                            | No       | Font size for time slot labels (default: "12px")                                                           |
+| `renderTitle`   | `(time: TTimeInterval) => string`   | No       | Custom function to render time slot labels                                                                 |
+| `onBarClick`    | `(clickData: BarClickData) => void` | No       | Callback function called when a bar is clicked                                                             |
 
 ### TimeLineBarData Interface
 
@@ -363,8 +363,9 @@ const monthsDiff = getTimeDifferenceInUnit(
 FlexCharts supports various time interval types for timeline visualization:
 
 #### Standard Intervals
+
 - `"Y"` - Years
-- `"M"` - Months  
+- `"M"` - Months
 - `"Q"` - Quarters
 - `"W"` - Weeks
 - `"D"` - Days
@@ -373,7 +374,9 @@ FlexCharts supports various time interval types for timeline visualization:
 - `"s"` - Seconds
 
 #### Decade Intervals
+
 For long-term timeline visualization, FlexCharts supports decade notation:
+
 - `"5Y"` - 5-year intervals
 - `"10Y"` - 10-year intervals (decades)
 - `"50Y"` - 50-year intervals (half-centuries)
