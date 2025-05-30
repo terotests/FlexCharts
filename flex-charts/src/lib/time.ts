@@ -990,7 +990,7 @@ export function splitTimeRangeIntoIntervals(
       const startYear = Math.floor(range.start.value / yearStep) * yearStep;
       const endYear = range.end.value;
 
-      for (let year = startYear; year <= endYear; year += yearStep) {
+      for (let year = startYear; year < endYear; year += yearStep) {
         // Only include if within the actual range
         if (year >= range.start.value) {
           const timeInterval: TTimeInterval = {

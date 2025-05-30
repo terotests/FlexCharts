@@ -95,3 +95,12 @@ pre {
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
 }
+
+.monarchs-centuries .bar {
+  /* Add a nice gradient background  with english flag colors */
+  background: linear-gradient(135deg, #ffffff22 0%, #ff000033 50%);
+
+  border: #913d5d 1.5px solid;
+  
+
+}

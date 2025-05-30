@@ -44,7 +44,7 @@ const datasetOptions = [
     name: "British Monarchs by Decades",
     data: britishMonarchs,
     startDate: "1550",
-    endDate: "2030",
+    endDate: "2050",
     interval: "10Y" as TTimeIntervalTypeWithDecades,
     renderTitle: (time: TTimeInterval) => `${time.value}s`,
   },
@@ -408,7 +408,7 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
       </div>
       <main>
         {" "}
-        <div className="chart-container">
+        <div className={`chart-container ${selectedDataset.id}`}>
           {" "}
           <TimeLineChart
             ref={chartRef}
