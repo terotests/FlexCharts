@@ -5,6 +5,7 @@ import { useRef, useEffect, useState } from "react";
 import {
   TimeLineChart,
   type BarClickData,
+  type RowClickData,
   type ChartHoverData,
 } from "./lib/components/TimeLineChart";
 import { TimeLineChartController } from "./lib/controllers/TimeLineChartController";
@@ -214,6 +215,49 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
 🎯 Chart scrolled to center this bar using controller from click data!`;
     console.log(message);
     console.log("Bar click data:", clickData);
+  };
+
+  const handleRowClick = (clickData: RowClickData) => {
+    const { bar, relativePosition, dimensions } = clickData;
+
+    // Create a comprehensive message about the row click
+    const message = `🎯 Row Clicked!
+Bar: ${bar.label}
+ID: ${bar.id}
+Time Range: ${bar.start} - ${bar.end}
+Relative Position: ${(relativePosition.start * 100).toFixed(1)}% - ${(
+      relativePosition.end * 100
+    ).toFixed(1)}%
+Center Position: ${(relativePosition.center * 100).toFixed(1)}%
+Row Container Dimensions: ${dimensions.width.toFixed(
+      0
+    )}px × ${dimensions.height.toFixed(0)}px
+Chart Dimensions: ${dimensions.chartWidth.toFixed(
+      0
+    )}px × ${dimensions.chartHeight.toFixed(0)}px
+Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
+
+🎯 Row click detected - scrolling to start of chart!`;
+    console.log(message);
+    console.log("Row click data:", clickData);
+
+    // Demonstrate different behavior from bar click - scroll to start
+
+    const dims = clickData.controller.getDimensions();
+    const visibleWidth =
+      (dims.visible?.width || 100) / (dims.total?.width || 1) || 0;
+
+    console.log("visibleWidth:", visibleWidth);
+
+    if (relativePosition.center < visibleWidth * 0.5) {
+      clickData.controller.scrollTo(0);
+    } else {
+      if (relativePosition.center > 1 - visibleWidth * 0.5) {
+        clickData.controller.scrollTo(1);
+      } else {
+        clickData.controller.scrollTo(relativePosition.center);
+      }
+    }
   };
 
   const handleChartHover = (hoverData: ChartHoverData) => {
@@ -469,6 +513,7 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
             key={selectedDataset.id} // Force re-render when dataset changes
             bars={selectedDataset.data}
             onBarClick={handleBarClick}
+            onRowClick={handleRowClick}
             onChartHover={handleChartHover}
             renderTitle={selectedDataset.renderTitle}
           />
