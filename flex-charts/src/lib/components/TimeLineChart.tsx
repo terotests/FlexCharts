@@ -307,13 +307,6 @@ export const TimeLineChart = forwardRef<
       interval
     );
   }, [start, end, interval]);
-  // Calculate number of horizontal grid lines based on chart content
-  const horizontalGridLines = useMemo(() => {
-    // Create horizontal lines that match the number of bars (rows) plus one for the bottom boundary
-    // This ensures each bar has its own row with proper grid separation
-    const gridLineCount = barData.length + 1;
-    return Array.from({ length: gridLineCount }, (_, index) => index);
-  }, [barData.length]);
 
   // Handle bar element references
   const handleBarElementRef = (
