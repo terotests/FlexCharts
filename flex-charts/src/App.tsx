@@ -408,7 +408,7 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
       </div>
       <main>
         {" "}
-        <div className="chart-container">
+        <div className={`chart-container ${selectedDataset.id}`}>
           {" "}
           <TimeLineChart
             ref={chartRef}

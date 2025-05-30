@@ -199,7 +199,7 @@ export const britishMonarchsMetadata = {
   title: "British Monarchs (1558-2025)",
   description:
     "Timeline of British monarchs from Elizabeth I to Charles III, organized by royal houses",
-  startDate: "1500",
+  startDate: "1550",
   endDate: "2050",
   interval: "Y" as const,
   colorLegend: {

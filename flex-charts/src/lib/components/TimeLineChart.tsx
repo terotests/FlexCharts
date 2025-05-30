@@ -616,9 +616,12 @@ export const TimeLineChart = forwardRef<
             {" "}
             {slots.map((slot, index) => (
               <div
-                className="time-slot"
+                className={`time-slot time-slot-${interval}`}
                 ref={(element) => handleTimeSlotElementRef(index, element)}
                 data-test-id={`time-slot-${index}`}
+                data-timeslot={
+                  props.renderTitle ? props.renderTitle(slot) : slot.value
+                }
                 key={index}
                 style={{
                   whiteSpace: "nowrap",
