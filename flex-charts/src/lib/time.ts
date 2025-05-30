@@ -1,4 +1,10 @@
 export type TTimeIntervalType = "Y" | "M" | "Q" | "W" | "D" | "H" | "m" | "s";
+export type TTimeIntervalTypeWithDecades =
+  | TTimeIntervalType
+  | "10Y"
+  | "5Y"
+  | "50Y"
+  | "100Y";
 export type TDelimiter = "-" | ":" | "/" | "." | " ";
 
 export type TValidTimePatterns =
@@ -967,8 +973,37 @@ export function convertSecondsToTimeInterval(
 
 export function splitTimeRangeIntoIntervals(
   range: { start: TTimeInterval; end: TTimeInterval },
-  interval: TTimeIntervalType
+  interval: TTimeIntervalTypeWithDecades
 ): TTimeInterval[] {
+  // Handle decade intervals (10Y, 5Y, 50Y, 100Y)
+  if (
+    interval === "10Y" ||
+    interval === "5Y" ||
+    interval === "50Y" ||
+    interval === "100Y"
+  ) {
+    if (range.start.type === "Y" && range.end.type === "Y") {
+      const yearStep = parseInt(interval.replace("Y", ""));
+      const res: TTimeInterval[] = [];
+
+      // Round start year to the nearest decade boundary
+      const startYear = Math.floor(range.start.value / yearStep) * yearStep;
+      const endYear = range.end.value;
+
+      for (let year = startYear; year <= endYear; year += yearStep) {
+        // Only include if within the actual range
+        if (year >= range.start.value) {
+          const timeInterval: TTimeInterval = {
+            type: "Y",
+            value: year,
+          };
+          res.push(timeInterval);
+        }
+      }
+      return res;
+    }
+  }
+
   if (range.start.type === interval && range.end.type === interval) {
     const res: TTimeInterval[] = [];
     for (let i = range.start.value; i <= range.end.value; i++) {
@@ -1083,10 +1118,19 @@ export function splitTimeRangeIntoIntervals(
     }
   }
 
-  const dateStart = timeIntervalToDate(range.start, interval);
-  const dateEnd = timeIntervalToDate(range.end, interval);
+  // For decade intervals, convert back to "Y" for the remaining functions
+  const effectiveInterval: TTimeIntervalType =
+    interval === "10Y" ||
+    interval === "5Y" ||
+    interval === "50Y" ||
+    interval === "100Y"
+      ? "Y"
+      : (interval as TTimeIntervalType);
 
-  const intervalInSeconds = convertTimeIntervalUnitToSeconds(interval);
+  const dateStart = timeIntervalToDate(range.start, effectiveInterval);
+  const dateEnd = timeIntervalToDate(range.end, effectiveInterval);
+
+  const intervalInSeconds = convertTimeIntervalUnitToSeconds(effectiveInterval);
 
   const intervals: TTimeInterval[] = [];
 
@@ -1102,19 +1146,18 @@ export function splitTimeRangeIntoIntervals(
   console.log(
     `Splitting time range from ${dateStart.toISOString()} to ${dateEnd.toISOString()} by ${interval}`
   );
-
   while (true) {
     // increment the time by the interval
 
-    const currentInterval = dateToTimeInterval(timeNow, interval);
+    const currentInterval = dateToTimeInterval(timeNow, effectiveInterval);
     intervals.push(currentInterval);
 
     timeNow = new Date(timeNow.getTime() + intervalInSeconds * 1000);
 
     const diff = getTimeDifferenceInUnit(
-      dateToTimeInterval(timeNow, interval),
+      dateToTimeInterval(timeNow, effectiveInterval),
       range.end,
-      interval
+      effectiveInterval
     );
     if (diff < 0) {
       break;

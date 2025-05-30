@@ -29,3 +29,8 @@ export { useChartTheme } from "./hooks/useChartTheme";
 
 // Types
 export type { ChartData, ChartOptions } from "./types";
+export type {
+  TTimeInterval,
+  TTimeIntervalType,
+  TTimeIntervalTypeWithDecades,
+} from "./time";

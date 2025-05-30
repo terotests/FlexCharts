@@ -203,16 +203,16 @@ function ControlledTimeline() {
 
 ### TimeLineChart Props
 
-| Prop            | Type                                | Required | Description                                             |
-| --------------- | ----------------------------------- | -------- | ------------------------------------------------------- |
-| `startDate`     | `string`                            | Yes      | Start date of the timeline (e.g., "2020", "01/2020")    |
-| `endDate`       | `string`                            | Yes      | End date of the timeline (e.g., "2025", "12/2025")      |
-| `interval`      | `TTimeIntervalType`                 | Yes      | Time interval (`"Y"`, `"M"`, `"Q"`, `"W"`, `"D"`, etc.) |
-| `bars`          | `TimeLineBarData[]`                 | No       | Array of bar data to display                            |
-| `width`         | `string`                            | No       | Width of the component (default: "100%")                |
-| `labelFontSize` | `string`                            | No       | Font size for time slot labels (default: "12px")        |
-| `renderTitle`   | `(time: TTimeInterval) => string`   | No       | Custom function to render time slot labels              |
-| `onBarClick`    | `(clickData: BarClickData) => void` | No       | Callback function called when a bar is clicked          |
+| Prop            | Type                                | Required | Description                                                                                                |
+| --------------- | ----------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `startDate`     | `string`                            | Yes      | Start date of the timeline (e.g., "2020", "01/2020")                                                       |
+| `endDate`       | `string`                            | Yes      | End date of the timeline (e.g., "2025", "12/2025")                                                         |
+| `interval`      | `TTimeIntervalType`                 | Yes      | Time interval (`"Y"`, `"M"`, `"Q"`, `"W"`, `"D"`, `"H"`, `"m"`, `"s"`, `"5Y"`, `"10Y"`, `"50Y"`, `"100Y"`) |
+| `bars`          | `TimeLineBarData[]`                 | No       | Array of bar data to display                                                                               |
+| `width`         | `string`                            | No       | Width of the component (default: "100%")                                                                   |
+| `labelFontSize` | `string`                            | No       | Font size for time slot labels (default: "12px")                                                           |
+| `renderTitle`   | `(time: TTimeInterval) => string`   | No       | Custom function to render time slot labels                                                                 |
+| `onBarClick`    | `(clickData: BarClickData) => void` | No       | Callback function called when a bar is clicked                                                             |
 
 ### TimeLineBarData Interface
 
@@ -356,6 +356,48 @@ const monthsDiff = getTimeDifferenceInUnit(
   parseTimeString("2024"),
   "M"
 ); // Returns 48 months
+```
+
+### Supported Time Intervals
+
+FlexCharts supports various time interval types for timeline visualization:
+
+#### Standard Intervals
+
+- `"Y"` - Years
+- `"M"` - Months
+- `"Q"` - Quarters
+- `"W"` - Weeks
+- `"D"` - Days
+- `"H"` - Hours
+- `"m"` - Minutes
+- `"s"` - Seconds
+
+#### Decade Intervals
+
+For long-term timeline visualization, FlexCharts supports decade notation:
+
+- `"5Y"` - 5-year intervals
+- `"10Y"` - 10-year intervals (decades)
+- `"50Y"` - 50-year intervals (half-centuries)
+- `"100Y"` - 100-year intervals (centuries)
+
+```tsx
+// Example: Display centuries for historical data
+<TimeLineChart
+  startDate="1500"
+  endDate="2000"
+  interval="100Y"
+  renderTitle={(time) => `${time.value}s`}
+/>
+
+// Example: Display decades for recent history
+<TimeLineChart
+  startDate="1950"
+  endDate="2030"
+  interval="10Y"
+  renderTitle={(time) => `${time.value}s`}
+/>
 ```
 
 ## Development Status

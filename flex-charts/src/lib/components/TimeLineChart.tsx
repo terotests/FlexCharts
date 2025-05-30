@@ -12,6 +12,7 @@ import {
   splitTimeRangeIntoIntervals,
   type TTimeInterval,
   type TTimeIntervalType,
+  type TTimeIntervalTypeWithDecades,
 } from "../time";
 import { TimeLineChartController } from "../controllers/TimeLineChartController";
 
@@ -241,7 +242,7 @@ export const TimeLineChart = forwardRef<
     width?: string;
     labelFontSize?: string;
     renderTitle?: (time: TTimeInterval) => string;
-    interval: TTimeIntervalType;
+    interval: TTimeIntervalTypeWithDecades;
     bars?: TimeLineBarData[];
     onBarClick?: (clickData: BarClickData) => void;
     onChartHover?: (hoverData: ChartHoverData) => void;
