@@ -7,14 +7,19 @@
   --bar-hover-border: #4e79a7;
   --bar-hover-shadow: 0 4px 16px 0 rgba(40, 60, 90, 0.13);
   --slot-bg: #e3e8f0;
-  --slot-text: #4e79a7;
-  --slot-border: #b0b8c9;
+  --slot-text: #4e79a7;  --slot-border: #b0b8c9;
     /* Grid line variables */
   --grid-line-color: rgba(176, 184, 201, 0.3);
   --grid-line-width: 1px;
   --grid-line-style: solid;
   --grid-background: transparent;
   --grid-hover-color: rgba(78, 121, 167, 0.2);
+  
+  /* Horizontal grid line variables */
+  --horizontal-grid-line-color: rgba(176, 184, 201, 0.2);
+  --horizontal-grid-line-width: 1px;
+  --horizontal-grid-line-style: solid;
+  --horizontal-grid-spacing: 40px; /* Space between horizontal lines */
     /* Scrollbar variables */
   --scrollbar-track-color: rgba(228, 230, 235, 0.3);
   --scrollbar-thumb-color: rgba(78, 121, 167, 0.4);
@@ -132,6 +137,27 @@
   border-color: var(--grid-line-color);
 }
 
+/* Horizontal grid lines styling */
+.horizontal-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 0;
+  pointer-events: none; /* Don't interfere with chart interactions */
+}
+
+.horizontal-grid-line {
+  flex: 1;
+}
+
+.horizontal-grid-line:last-child {
+  border-bottom: none;
+}
+
 /* Custom scrollbar styling for timeline chart scroll container */
 .timeline-chart-scroll-container {
   scrollbar-width: thin;
@@ -166,4 +192,30 @@
 
 .timeline-chart-scroll-container::-webkit-scrollbar-corner {
   background: var(--scrollbar-track-color);
+}
+
+.time-bars {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  position: relative;
+  z-index: 1; /* Ensure bars are above grid lines */
+  
+}
+
+.timeline-bar-container {
+    display: flex;
+    align-items: center;
+    background: linear-gradient( to bottom, transparent, var(--horizontal-grid-line-color) );   
+}
+
+.timeline-bar-container:hover {
+
+  background:rgba(40, 60, 90, 0.18);
+}
+
+
+.bar {
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
