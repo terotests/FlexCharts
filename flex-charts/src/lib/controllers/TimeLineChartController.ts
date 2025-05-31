@@ -23,6 +23,7 @@ export class TimeLineChartController {
   } = { visible: null, total: null };
   private _scrollToCallback: ((position: number) => void) | null = null;
   private _scrollPositionChangeCallbacks: ((position: number) => void)[] = [];
+  private _currentScrollPosition: number = 0;
 
   constructor(chartId: string = "") {
     this._chartId =
@@ -405,11 +406,13 @@ export class TimeLineChartController {
       }
     };
   }
-
   /**
    * Notify scroll position change (called from React component)
    */
   notifyScrollPositionChange(position: number): void {
+    // Update the current scroll position
+    this._currentScrollPosition = position;
+
     this._scrollPositionChangeCallbacks.forEach((callback) => {
       try {
         callback(position);
@@ -456,6 +459,13 @@ export class TimeLineChartController {
    */
   scrollToCenter(): void {
     this.scrollTo(0.5);
+  }
+
+  /**
+   * Get the current scroll position (0-1)
+   */
+  getCurrentScrollPosition(): number {
+    return this._currentScrollPosition;
   }
 }
 
