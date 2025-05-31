@@ -16,6 +16,7 @@ export {
   type BarClickData,
   type RowClickData,
   type ChartHoverData,
+  type BarRenderContext,
 } from "./components/TimeLineChart";
 
 // Controllers

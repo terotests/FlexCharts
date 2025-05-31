@@ -107,6 +107,21 @@ export interface TimeLineBarData {
   textColor?: string;
 }
 
+// Custom render context data passed to render functions
+export interface BarRenderContext {
+  bar: TimeLineBarData;
+  controller: TimeLineChartController;
+  relativePosition: {
+    start: number;
+    end: number;
+    center: number;
+  };
+  dimensions: {
+    width: number;
+    height: number;
+  };
+}
+
 const TimeLineBar = (props: {
   id?: string | number;
   start: string;
@@ -126,6 +141,10 @@ const TimeLineBar = (props: {
   onRowClick?: (clickData: RowClickData) => void;
   chartContainerRef?: React.RefObject<HTMLDivElement | null>;
   controller?: TimeLineChartController;
+  // Custom render functions
+  renderRowPrefix?: (context: BarRenderContext) => React.ReactNode;
+  renderBarSuffix?: (context: BarRenderContext) => React.ReactNode;
+  renderBarContent?: (context: BarRenderContext) => React.ReactNode;
 }) => {
   const {
     id,
@@ -141,6 +160,9 @@ const TimeLineBar = (props: {
     onRowClick,
     chartContainerRef,
     controller,
+    renderRowPrefix,
+    renderBarSuffix,
+    renderBarContent,
   } = props;
 
   const [textAlignment, setTextAlignment] = useState<"center" | "flex-start">(
@@ -167,6 +189,44 @@ const TimeLineBar = (props: {
   );
   const prosStart = `${(slotStart * 100).toFixed(1)}%`;
   const prosEnd = `${((slotEnd - slotStart) * 100).toFixed(1)}%`;
+
+  // Create render context for custom render functions
+  const renderContext: BarRenderContext = useMemo(() => {
+    const barData: TimeLineBarData = {
+      id,
+      start,
+      end,
+      label,
+      color,
+      backgroundColor,
+      textColor,
+    };
+
+    return {
+      bar: barData,
+      controller: controller!,
+      relativePosition: {
+        start: slotStart,
+        end: slotEnd,
+        center: (slotStart + slotEnd) / 2,
+      },
+      dimensions: {
+        width: barRef.current?.offsetWidth || 0,
+        height: barRef.current?.offsetHeight || 0,
+      },
+    };
+  }, [
+    id,
+    start,
+    end,
+    label,
+    color,
+    backgroundColor,
+    textColor,
+    controller,
+    slotStart,
+    slotEnd,
+  ]);
 
   // Check if text fits and adjust alignment accordingly
   useEffect(() => {
@@ -290,53 +350,94 @@ const TimeLineBar = (props: {
     <div
       style={{
         width: "100%",
+        position: "relative",
       }}
       className="timeline-bar-container"
       onClick={handleRowClick}
     >
-      {" "}
-      <div
-        className="bar"
-        ref={(element) => {
-          barRef.current = element;
-          if (onBarElementRef && id !== undefined) {
-            onBarElementRef(id, element);
-          }
-        }}
-        onClick={handleBarClick}
-        data-test-id={`bar-${id}`}
-        tabIndex={0}
-        title={label}
-        aria-label={label}
-        role="img"
-        aria-description={`${label}: ${start} - ${end}`}
-        style={{
-          marginLeft: prosStart,
-          top: "0px",
-          width: prosEnd,
-          borderRadius: "10px",
-          overflow: "hidden",
-          display: "flex",
-          justifyContent: textAlignment,
-          alignItems: "center",
-          backgroundColor: backgroundColor || "#3b82f6",
-          color: textColor || "white",
-          border: `1px solid ${color || backgroundColor || "#3b82f6"}`,
-          cursor: onBarClick ? "pointer" : "default",
-          pointerEvents: onBarClick ? "auto" : "none", // Enable pointer events only if onBarClick is provided
-          paddingLeft: textAlignment === "flex-start" ? "8px" : "0px", // Add padding when left-aligned
-        }}
-      >
+      {/* Row prefix - positioned absolutely to not affect timeline alignment */}
+      {renderRowPrefix && controller && (
         <div
-          ref={textRef}
+          className="timeline-row-prefix"
           style={{
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            position: "absolute",
+            left: "0px", // Position to the left of the timeline
+            top: "0px",
+            zIndex: 1,
+            pointerEvents: "none", // Don't interfere with row clicks
           }}
         >
-          {props.children}
+          {renderRowPrefix(renderContext)}
         </div>
+      )}
+
+      {/* Bar container - full width to maintain timeline alignment */}
+      <div style={{ width: "100%", position: "relative" }}>
+        <div
+          className="bar"
+          ref={(element) => {
+            barRef.current = element;
+            if (onBarElementRef && id !== undefined) {
+              onBarElementRef(id, element);
+            }
+          }}
+          onClick={handleBarClick}
+          data-test-id={`bar-${id}`}
+          tabIndex={0}
+          title={label}
+          aria-label={label}
+          role="img"
+          aria-description={`${label}: ${start} - ${end}`}
+          style={{
+            marginLeft: prosStart,
+            top: "0px",
+            width: prosEnd,
+            borderRadius: "10px",
+            overflow: "hidden",
+            display: "flex",
+            justifyContent: textAlignment,
+            alignItems: "center",
+            backgroundColor: backgroundColor || "#3b82f6",
+            color: textColor || "white",
+            border: `1px solid ${color || backgroundColor || "#3b82f6"}`,
+            cursor: onBarClick ? "pointer" : "default",
+            pointerEvents: onBarClick ? "auto" : "none", // Enable pointer events only if onBarClick is provided
+            paddingLeft: textAlignment === "flex-start" ? "8px" : "0px", // Add padding when left-aligned
+          }}
+        >
+          {/* Bar content - either custom render or default label */}
+          {renderBarContent && controller ? (
+            renderBarContent(renderContext)
+          ) : (
+            <div
+              ref={textRef}
+              style={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {props.children}
+            </div>
+          )}
+        </div>
+
+        {/* Bar suffix - rendered after the bar on the same row */}
+        {renderBarSuffix && controller && (
+          <div
+            className="timeline-bar-suffix"
+            style={{
+              position: "absolute",
+              left: `calc(${prosStart} + ${prosEnd} + 8px)`,
+              top: "50%",
+              transform: "translateY(-50%)",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            {renderBarSuffix(renderContext)}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -355,6 +456,12 @@ export const TimeLineChart = forwardRef<
     onBarClick?: (clickData: BarClickData) => void;
     onRowClick?: (clickData: RowClickData) => void;
     onChartHover?: (hoverData: ChartHoverData) => void;
+    // Custom render functions
+    renderRowPrefix?: (context: BarRenderContext) => React.ReactNode;
+    renderBarSuffix?: (context: BarRenderContext) => React.ReactNode;
+    renderBarContent?: (context: BarRenderContext) => React.ReactNode;
+    // Layout options
+    leftMargin?: string | number; // Margin for prefix elements that overflow to the left
   }
 >((props, ref) => {
   const {
@@ -365,6 +472,10 @@ export const TimeLineChart = forwardRef<
     onBarClick,
     onRowClick,
     onChartHover,
+    renderRowPrefix,
+    renderBarSuffix,
+    renderBarContent,
+    leftMargin = 0, // Default to no margin
   } = props;
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
@@ -651,9 +762,10 @@ export const TimeLineChart = forwardRef<
             justifyContent: "stretch",
             gap: "6px",
             position: "relative",
-            overflow: "hidden",
             minWidth: "100%",
             height: "100%",
+            marginLeft:
+              typeof leftMargin === "number" ? `${leftMargin}px` : leftMargin,
           }}
         >
           {/* Vertical grid lines container */}
@@ -683,6 +795,9 @@ export const TimeLineChart = forwardRef<
                 onRowClick={onRowClick}
                 chartContainerRef={chartElementRef}
                 controller={controllerRef.current}
+                renderRowPrefix={renderRowPrefix}
+                renderBarSuffix={renderBarSuffix}
+                renderBarContent={renderBarContent}
               >
                 {bar.label}
               </TimeLineBar>
