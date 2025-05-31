@@ -24,6 +24,42 @@ import {
   type TTimeIntervalTypeWithDecades,
 } from "./lib/time";
 
+// Helper function to get technology icons
+const getTechIcon = (label: string): string => {
+  const techIcons: Record<string, string> = {
+    // Programming Languages
+    "Turbo C": "🔧",
+    Pascal: "📐",
+    "x86 Asm (TASM)": "⚡",
+    Perl: "🐪",
+    "Watcom C": "🔧",
+    "Visual Studio": "🏢",
+    "Pascal To C": "🔄",
+    PHP: "🐘",
+    JavaScript: "🟨",
+    TypeScript: "🔷",
+
+    // Databases & Servers
+    "Apache HTTP Server": "🪶",
+    MySQL: "🐬",
+    Nginx: "🌐",
+
+    // Frameworks & Libraries
+    React: "⚛️",
+    GraphQL: "🔗",
+  };
+
+  // Find matching technology (case insensitive partial match)
+  for (const [tech, icon] of Object.entries(techIcons)) {
+    if (label.toLowerCase().includes(tech.toLowerCase())) {
+      return icon;
+    }
+  }
+
+  // Default icon for unknown technologies
+  return "💻";
+};
+
 // Dataset options for the dropdown
 const datasetOptions = [
   {
@@ -575,14 +611,36 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
+                  justifyContent: "flex-start",
                   width: "100%",
                   padding: "0 8px",
                   fontSize: "11px",
                   fontWeight: "500",
+                  gap: "6px",
                 }}
               >
-                <span style={{ flexShrink: 0 }}>{context.bar.label}</span>
+                {/* Show tech icon only for Custom Projects dataset */}
+                {selectedDataset.id === "custom" && (
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      flexShrink: 0,
+                      filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))",
+                    }}
+                  >
+                    {getTechIcon(context.bar.label)}
+                  </span>
+                )}
+                <span
+                  style={{
+                    flexShrink: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {context.bar.label}
+                </span>
               </div>
             )}
           />
