@@ -129,7 +129,7 @@ export const finnishPresidents: TimeLineBarData[] = [
   {
     id: "stubb",
     start: "2024-03-01",
-    end: "2025-12-31",
+    end: "2025-06-01",
     label: "Alexander Stubb",
     backgroundColor: "#228B22",
     textColor: "white",

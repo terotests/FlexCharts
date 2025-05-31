@@ -546,7 +546,10 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
                   fontSize: "9px",
                   color: theme.mode === "light" ? "#888" : "#ccc",
                   marginLeft: "8px",
-                  padding: "2px 6px",
+                  display: "flex",
+                  alignItems: "center",
+                  height: "calc( 100% )",
+                  padding: "0 10px 0px 10px",
                   backgroundColor:
                     theme.mode === "light" ? "#f0f0f0" : "#404040",
                   borderRadius: "3px",
@@ -580,19 +583,6 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
                 }}
               >
                 <span style={{ flexShrink: 0 }}>{context.bar.label}</span>
-                {context.dimensions.width > 100 && (
-                  <span
-                    style={{
-                      fontSize: "9px",
-                      opacity: 0.8,
-                      marginLeft: "8px",
-                      flexShrink: 0,
-                    }}
-                  >
-                    ({context.bar.start.toString().slice(0, 4)}-
-                    {context.bar.end.toString().slice(0, 4)})
-                  </span>
-                )}
               </div>
             )}
           />

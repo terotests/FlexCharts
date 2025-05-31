@@ -393,7 +393,6 @@ const TimeLineBar = (props: {
             top: "0px",
             width: prosEnd,
             borderRadius: "10px",
-            overflow: "hidden",
             display: "flex",
             justifyContent: textAlignment,
             alignItems: "center",
@@ -406,38 +405,46 @@ const TimeLineBar = (props: {
           }}
         >
           {/* Bar content - either custom render or default label */}
-          {renderBarContent && controller ? (
-            renderBarContent(renderContext)
-          ) : (
+
+          <div
+            ref={textRef}
+            style={{
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {renderBarContent && controller
+              ? renderBarContent(renderContext)
+              : props.children}
+          </div>
+
+          {/* Bar suffix - rendered after the bar on the same row */}
+          {renderBarSuffix && controller && (
             <div
-              ref={textRef}
+              className="timeline-bar-suffix"
               style={{
+                position: "absolute",
+                right: `0px`,
+                top: "0px",
+                height: "100%",
                 whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+                flexShrink: 0,
               }}
             >
-              {props.children}
+              <div
+                style={{
+                  position: "absolute",
+                  left: "0px",
+                  top: "0px",
+                  height: "100%",
+                }}
+              >
+                {renderBarSuffix(renderContext)}
+              </div>
             </div>
           )}
         </div>
-
-        {/* Bar suffix - rendered after the bar on the same row */}
-        {renderBarSuffix && controller && (
-          <div
-            className="timeline-bar-suffix"
-            style={{
-              position: "absolute",
-              left: `calc(${prosStart} + ${prosEnd} + 8px)`,
-              top: "50%",
-              transform: "translateY(-50%)",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-            }}
-          >
-            {renderBarSuffix(renderContext)}
-          </div>
-        )}
       </div>
     </div>
   );
