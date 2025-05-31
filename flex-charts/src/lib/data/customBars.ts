@@ -3,14 +3,14 @@ import type { TimeLineBarData } from "../components/TimeLineChart";
 export const customBars: TimeLineBarData[] = [
   {
     id: 1,
-    start: "05/1992",
+    start: "01/1992",
     end: "05/1995",
     label: "Turbo C",
     backgroundColor: "#ff6b6b",
   },
   {
     id: 2,
-    start: "05/1992",
+    start: "01/1993",
     end: "05/1998",
     label: "Pascal",
     backgroundColor: "#4ecdc4",

@@ -20,6 +20,12 @@ import {
   finnishPresidentsMetadata,
 } from "./lib/data/finnishPresidents";
 import {
+  smLiigaChampions,
+  smLiigaChampionsMetadata,
+} from "./lib/data/smLiigaChampions";
+import {
+  getTimeDifferenceInUnit,
+  parseTimeString,
   type TTimeInterval,
   type TTimeIntervalTypeWithDecades,
 } from "./lib/time";
@@ -98,6 +104,15 @@ const datasetOptions = [
     endDate: "2050",
     interval: "10Y" as TTimeIntervalTypeWithDecades,
     renderTitle: (time: TTimeInterval) => `${time.value}s`,
+  },
+  {
+    id: "sm-liiga",
+    name: "SM-Liiga Champions (1976-2024)",
+    data: smLiigaChampions,
+    startDate: smLiigaChampionsMetadata.startDate,
+    endDate: smLiigaChampionsMetadata.endDate,
+    interval: smLiigaChampionsMetadata.interval,
+    renderTitle: (time: TTimeInterval) => `${time.value}`,
   },
   {
     id: "monarchs-centuries",
@@ -534,6 +549,44 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
               )}
             </div>
           )}
+          {/* Show color legend for SM-Liiga Champions */}
+          {selectedDataset.id === "sm-liiga" && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginLeft: "12px",
+                fontSize: "12px",
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ fontWeight: "bold" }}>Teams:</span>
+              {Object.entries(smLiigaChampionsMetadata.colorLegend).map(
+                ([color, team]) => (
+                  <div
+                    key={color}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        backgroundColor: color,
+                        borderRadius: "2px",
+                        border: "1px solid #ccc",
+                      }}
+                    />
+                    <span style={{ fontSize: "11px" }}>{team}</span>
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
       </div>
       <main>
@@ -595,13 +648,24 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
               >
                 {(() => {
                   // Calculate duration in years
-                  const startYear = parseInt(
-                    context.bar.start.toString().slice(0, 4)
+
+                  let duration = getTimeDifferenceInUnit(
+                    parseTimeString(context.bar.start),
+                    parseTimeString(context.bar.end),
+                    "Y"
                   );
-                  const endYear = parseInt(
-                    context.bar.end.toString().slice(0, 4)
-                  );
-                  const duration = endYear - startYear + 1;
+
+                  if (context.slots) {
+                    duration = 0;
+                    context.slots.forEach((slot) => {
+                      duration += getTimeDifferenceInUnit(
+                        parseTimeString(slot.start),
+                        parseTimeString(slot.end),
+                        "Y"
+                      );
+                    });
+                  }
+
                   return `${duration}yr${duration !== 1 ? "s" : ""}`;
                 })()}
               </div>

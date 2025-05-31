@@ -15,6 +15,12 @@ import {
   type TTimeIntervalTypeWithDecades,
 } from "../time";
 import { TimeLineChartController } from "../controllers/TimeLineChartController";
+import {
+  processTimelineData,
+  validateTimeSlots,
+  type TimelineRow,
+  type TimeSlot,
+} from "../utils/timelineDataProcessor";
 
 import "./TimeLineChart.css"; // Assuming you have a CSS file for styling
 
@@ -120,7 +126,269 @@ export interface BarRenderContext {
     width: number;
     height: number;
   };
+  slots?: TimeSlot[]; // Optional slots for multi-slot rendering
 }
+
+// Component for rendering a timeline row with multiple slots
+const TimeLineRowComponent = (props: {
+  row: TimelineRow;
+  range: { start: string; end: string };
+  onBarElementRef?: (id: string | number, element: HTMLElement | null) => void;
+  onBarClick?: (clickData: BarClickData) => void;
+  onRowClick?: (clickData: RowClickData) => void;
+  chartContainerRef?: React.RefObject<HTMLDivElement | null>;
+  controller?: TimeLineChartController;
+  renderRowPrefix?: (context: BarRenderContext) => React.ReactNode;
+  renderBarSuffix?: (context: BarRenderContext) => React.ReactNode;
+  renderBarContent?: (context: BarRenderContext) => React.ReactNode;
+}) => {
+  const {
+    row,
+    range,
+    onBarElementRef,
+    onBarClick,
+    onRowClick,
+    chartContainerRef,
+    controller,
+    renderRowPrefix,
+    renderBarSuffix,
+    renderBarContent,
+  } = props;
+
+  // Calculate position of the entire row within the chart timeline
+  const rowStartTime = useMemo(
+    () => parseTimeString(row.fullTimeRange.start),
+    [row.fullTimeRange.start]
+  );
+  const rowEndTime = useMemo(
+    () => parseTimeString(row.fullTimeRange.end),
+    [row.fullTimeRange.end]
+  );
+
+  const rowSlotStart = calculateTimeSlot(
+    {
+      start: parseTimeString(range.start),
+      end: parseTimeString(range.end),
+    },
+    rowStartTime
+  );
+  const rowSlotEnd = calculateTimeSlot(
+    {
+      start: parseTimeString(range.start),
+      end: parseTimeString(range.end),
+    },
+    rowEndTime
+  );
+
+  // Validate slots to check for overlaps
+  const validationErrors = validateTimeSlots(row.slots);
+  if (validationErrors.length > 0) {
+    console.warn("Timeline row validation errors:", validationErrors);
+  }
+
+  // Create render context for the row (using first slot as representative)
+  const renderContext: BarRenderContext = useMemo(() => {
+    const firstSlot = row.slots[0];
+    if (!firstSlot) {
+      throw new Error(`Row ${row.rowId} has no slots`);
+    }
+
+    const barData: TimeLineBarData = {
+      id: row.rowId,
+      start: row.fullTimeRange.start,
+      end: row.fullTimeRange.end,
+      label: row.label,
+      color: firstSlot.color,
+      backgroundColor: firstSlot.backgroundColor,
+      textColor: firstSlot.textColor,
+    };
+
+    return {
+      slots: row.slots,
+      bar: barData,
+      controller: controller!,
+      relativePosition: {
+        start: rowSlotStart,
+        end: rowSlotEnd,
+        center: (rowSlotStart + rowSlotEnd) / 2,
+      },
+      dimensions: {
+        width: 0, // Will be updated when elements are available
+        height: 0,
+      },
+    };
+  }, [row, rowSlotStart, rowSlotEnd, controller]);
+
+  // Handle row click
+  const handleRowClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!onRowClick || !controller) return;
+
+    const containerRect = event.currentTarget.getBoundingClientRect();
+    const chartWidth =
+      chartContainerRef?.current?.getBoundingClientRect().width ||
+      containerRect.width;
+    const chartHeight =
+      chartContainerRef?.current?.getBoundingClientRect().height ||
+      containerRect.height;
+
+    const barData: TimeLineBarData = {
+      id: row.rowId,
+      start: row.fullTimeRange.start,
+      end: row.fullTimeRange.end,
+      label: row.label,
+    };
+
+    const relativePosition = {
+      start: rowSlotStart,
+      end: rowSlotEnd,
+      center: (rowSlotStart + rowSlotEnd) / 2,
+    };
+
+    const dimensions = {
+      width: containerRect.width,
+      height: containerRect.height,
+      left: containerRect.left,
+      top: containerRect.top,
+      chartWidth,
+      chartHeight,
+    };
+
+    onRowClick({
+      bar: barData,
+      relativePosition,
+      dimensions,
+      controller: controller!,
+      event,
+    });
+  };
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        position: "relative",
+      }}
+      className="timeline-row-container"
+      onClick={handleRowClick}
+    >
+      {/* Row prefix */}
+      <TimeLineRowPrefix
+        renderRowPrefix={renderRowPrefix}
+        renderContext={renderContext}
+      />
+
+      {/* Row container positioned within the chart timeline */}
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+        }}
+      >
+        {/* Render each slot within the row */}
+        {row.slots.map((slot, slotIndex) => {
+          const slotProsStart = `${(slot.relativeStart * 100).toFixed(2)}%`;
+          const slotProsWidth = `${(slot.relativeWidth * 100).toFixed(2)}%`;
+
+          // Handle slot click
+          const handleSlotClick = (event: React.MouseEvent<HTMLDivElement>) => {
+            if (!onBarClick) return;
+            event.stopPropagation(); // Prevent row click
+
+            const slotElement = event.currentTarget;
+            const slotRect = slotElement.getBoundingClientRect();
+            const chartWidth =
+              chartContainerRef?.current?.getBoundingClientRect().width || 0;
+            const chartHeight =
+              chartContainerRef?.current?.getBoundingClientRect().height || 0;
+
+            const barData: TimeLineBarData = {
+              id: slot.id,
+              start: slot.start,
+              end: slot.end,
+              label: slot.label,
+              color: slot.color,
+              backgroundColor: slot.backgroundColor,
+              textColor: slot.textColor,
+            };
+
+            // Calculate absolute position of slot within entire chart
+            const absoluteSlotStart =
+              rowSlotStart + (rowSlotEnd - rowSlotStart) * slot.relativeStart;
+            const absoluteSlotEnd =
+              rowSlotStart + (rowSlotEnd - rowSlotStart) * slot.relativeEnd;
+
+            const relativePosition = {
+              start: absoluteSlotStart,
+              end: absoluteSlotEnd,
+              center: (absoluteSlotStart + absoluteSlotEnd) / 2,
+            };
+
+            const dimensions = {
+              width: slotRect.width,
+              height: slotRect.height,
+              left: slotRect.left,
+              top: slotRect.top,
+              chartWidth,
+              chartHeight,
+            };
+
+            onBarClick({
+              bar: barData,
+              relativePosition,
+              dimensions,
+              controller: controller!,
+              event,
+            });
+          };
+
+          return (
+            <div
+              key={`${slot.id}-${slotIndex}`}
+              className="bar"
+              ref={(element) => {
+                if (onBarElementRef) {
+                  onBarElementRef(slot.id, element);
+                }
+              }}
+              onClick={handleSlotClick}
+              style={{
+                ...getBarStyles({
+                  backgroundColor: slot.backgroundColor,
+                  color: slot.color,
+                  textColor: slot.textColor,
+                  isClickable: !!onBarClick,
+                }),
+                marginLeft: slotProsStart,
+                width: slotProsWidth,
+                alignItems: "left",
+                overflow: "unset",
+                justifyContent: "flex-start",
+                position: slotIndex > 0 ? "absolute" : undefined,
+                top: "0px",
+                left: "0px",
+                height: "1.9em",
+              }}
+              title={`${slot.label}: ${slot.start} - ${slot.end}`}
+            >
+              {/* Slot content */}
+              <TimeLineBarContent
+                label={slot.label}
+                renderBarContent={renderBarContent}
+                renderContext={renderContext}
+              />
+            </div>
+          );
+        })}
+
+        {/* Row suffix */}
+        <TimeLineRowSuffix
+          renderBarSuffix={renderBarSuffix}
+          renderContext={renderContext}
+        />
+      </div>
+    </div>
+  );
+};
 
 const TimeLineBar = (props: {
   id?: string | number;
@@ -356,23 +624,14 @@ const TimeLineBar = (props: {
       onClick={handleRowClick}
     >
       {/* Row prefix - positioned absolutely to not affect timeline alignment */}
-      {renderRowPrefix && controller && (
-        <div
-          className="timeline-row-prefix"
-          style={{
-            position: "absolute",
-            left: "0px", // Position to the left of the timeline
-            top: "0px",
-            zIndex: 1,
-            pointerEvents: "none", // Don't interfere with row clicks
-          }}
-        >
-          {renderRowPrefix(renderContext)}
-        </div>
-      )}
+      <TimeLineRowPrefix
+        renderRowPrefix={renderRowPrefix}
+        renderContext={renderContext}
+      />
 
       {/* Bar container - full width to maintain timeline alignment */}
       <div style={{ width: "100%", position: "relative" }}>
+        {" "}
         <div
           className="bar"
           ref={(element) => {
@@ -389,62 +648,37 @@ const TimeLineBar = (props: {
           role="img"
           aria-description={`${label}: ${start} - ${end}`}
           style={{
+            ...getBarStyles({
+              backgroundColor,
+              color,
+              textColor,
+              isClickable: !!onBarClick,
+            }),
             marginLeft: prosStart,
             top: "0px",
             width: prosEnd,
-            borderRadius: "10px",
-            display: "flex",
             justifyContent: textAlignment,
-            alignItems: "center",
-            backgroundColor: backgroundColor || "#3b82f6",
-            color: textColor || "white",
-            border: `1px solid ${color || backgroundColor || "#3b82f6"}`,
-            cursor: onBarClick ? "pointer" : "default",
-            pointerEvents: onBarClick ? "auto" : "none", // Enable pointer events only if onBarClick is provided
             paddingLeft: textAlignment === "flex-start" ? "8px" : "0px", // Add padding when left-aligned
           }}
         >
-          {/* Bar content - either custom render or default label */}
-
-          <div
-            ref={textRef}
-            style={{
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {renderBarContent && controller
-              ? renderBarContent(renderContext)
-              : props.children}
-          </div>
-
-          {/* Bar suffix - rendered after the bar on the same row */}
-          {renderBarSuffix && controller && (
-            <div
-              className="timeline-bar-suffix"
-              style={{
-                position: "absolute",
-                right: `0px`,
-                top: "0px",
-                height: "100%",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-              }}
+          {/* Bar content - using shared component */}
+          <div ref={textRef}>
+            <TimeLineBarContent
+              label={label}
+              renderBarContent={renderBarContent}
+              renderContext={
+                renderBarContent && controller ? renderContext : undefined
+              }
             >
-              <div
-                style={{
-                  position: "absolute",
-                  left: "0px",
-                  top: "0px",
-                  height: "100%",
-                }}
-              >
-                {renderBarSuffix(renderContext)}
-              </div>
-            </div>
-          )}
+              {props.children}
+            </TimeLineBarContent>
+          </div>
         </div>
+        {/* Bar suffix - using shared component */}
+        <TimeLineRowSuffix
+          renderBarSuffix={renderBarSuffix}
+          renderContext={renderContext}
+        />
       </div>
     </div>
   );
@@ -502,8 +736,22 @@ export const TimeLineChart = forwardRef<
 
   const containerElementRef = useRef<HTMLDivElement>(null);
   const timeSlotElementsRef = useRef<HTMLElement[]>([]);
-  // Use provided bars or empty array if no bars provided
-  const barData = bars || [];
+
+  // Use provided bars or empty array if no bars provided - wrapped in useMemo
+  const barData = useMemo(() => bars || [], [bars]);
+
+  // Process timeline data to group bars by ID for multi-slot rendering
+  const timelineRows = useMemo(() => {
+    return processTimelineData(barData, {
+      start: startDate,
+      end: endDate,
+    });
+  }, [barData]);
+
+  // Determine if we should use multi-slot rendering (when there are rows with multiple slots)
+  const useMultiSlotRendering = useMemo(() => {
+    return timelineRows.some((row) => row.slots.length > 1);
+  }, [timelineRows]);
 
   const slots = useMemo(() => {
     return splitTimeRangeIntoIntervals(
@@ -786,29 +1034,47 @@ export const TimeLineChart = forwardRef<
             ))}
           </div>{" "}
           <div className="time-bars">
-            {barData.map((bar) => (
-              <TimeLineBar
-                key={bar.id || `${bar.start}-${bar.end}-${bar.label}`}
-                id={bar.id}
-                start={bar.start}
-                end={bar.end}
-                label={bar.label}
-                color={bar.color}
-                backgroundColor={bar.backgroundColor}
-                textColor={bar.textColor}
-                range={{ start: props.startDate, end: props.endDate }}
-                onBarElementRef={handleBarElementRef}
-                onBarClick={onBarClick}
-                onRowClick={onRowClick}
-                chartContainerRef={chartElementRef}
-                controller={controllerRef.current}
-                renderRowPrefix={renderRowPrefix}
-                renderBarSuffix={renderBarSuffix}
-                renderBarContent={renderBarContent}
-              >
-                {bar.label}
-              </TimeLineBar>
-            ))}{" "}
+            {useMultiSlotRendering
+              ? // Multi-slot rendering for rows with multiple slots
+                timelineRows.map((row) => (
+                  <TimeLineRowComponent
+                    key={row.rowId}
+                    row={row}
+                    range={{ start: props.startDate, end: props.endDate }}
+                    onBarElementRef={handleBarElementRef}
+                    onBarClick={onBarClick}
+                    onRowClick={onRowClick}
+                    chartContainerRef={chartElementRef}
+                    controller={controllerRef.current}
+                    renderRowPrefix={renderRowPrefix}
+                    renderBarSuffix={renderBarSuffix}
+                    renderBarContent={renderBarContent}
+                  />
+                ))
+              : // Single slot rendering for simple timeline bars
+                barData.map((bar) => (
+                  <TimeLineBar
+                    key={bar.id || `${bar.start}-${bar.end}-${bar.label}`}
+                    id={bar.id}
+                    start={bar.start}
+                    end={bar.end}
+                    label={bar.label}
+                    color={bar.color}
+                    backgroundColor={bar.backgroundColor}
+                    textColor={bar.textColor}
+                    range={{ start: props.startDate, end: props.endDate }}
+                    onBarElementRef={handleBarElementRef}
+                    onBarClick={onBarClick}
+                    onRowClick={onRowClick}
+                    chartContainerRef={chartElementRef}
+                    controller={controllerRef.current}
+                    renderRowPrefix={renderRowPrefix}
+                    renderBarSuffix={renderBarSuffix}
+                    renderBarContent={renderBarContent}
+                  >
+                    {bar.label}
+                  </TimeLineBar>
+                ))}
           </div>
           <div
             className={`time-slots ${
@@ -848,3 +1114,118 @@ export const TimeLineChart = forwardRef<
     </div>
   );
 });
+
+// Shared row prefix component
+const TimeLineRowPrefix = ({
+  renderRowPrefix,
+  renderContext,
+}: {
+  renderRowPrefix?: (context: BarRenderContext) => React.ReactNode;
+  renderContext: BarRenderContext;
+}) => {
+  if (!renderRowPrefix) return null;
+
+  return (
+    <div
+      className="timeline-row-prefix"
+      style={{
+        position: "absolute",
+        left: "0px",
+        top: "0px",
+        zIndex: 1,
+        pointerEvents: "none",
+      }}
+    >
+      {renderRowPrefix(renderContext)}
+    </div>
+  );
+};
+
+// Shared row suffix component
+const TimeLineRowSuffix = ({
+  renderBarSuffix,
+  renderContext,
+}: {
+  renderBarSuffix?: (context: BarRenderContext) => React.ReactNode;
+  renderContext: BarRenderContext;
+}) => {
+  if (!renderBarSuffix) return null;
+
+  return (
+    <div
+      className="timeline-row-suffix"
+      style={{
+        position: "absolute",
+        right: "0px",
+        top: "0px",
+        height: "100%",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          left: "0px",
+          top: "0px",
+          height: "100%",
+        }}
+      >
+        {renderBarSuffix(renderContext)}
+      </div>
+    </div>
+  );
+};
+
+// Shared slot/bar styling function
+const getBarStyles = (options: {
+  backgroundColor?: string;
+  color?: string;
+  textColor?: string;
+  isClickable?: boolean;
+}): React.CSSProperties => {
+  const { backgroundColor, color, textColor, isClickable } = options;
+
+  return {
+    backgroundColor: backgroundColor || "#3b82f6",
+    color: textColor || "white",
+    border: `1px solid ${color || backgroundColor || "#3b82f6"}`,
+    borderRadius: "10px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: isClickable ? "pointer" : "default",
+    pointerEvents: (isClickable ? "auto" : "none") as "auto" | "none",
+    padding: "0 4px",
+    boxSizing: "border-box",
+    height: "100%",
+  };
+};
+
+// Shared text content component for slots/bars
+const TimeLineBarContent = ({
+  label,
+  renderBarContent,
+  renderContext,
+  children,
+}: {
+  label: string;
+  renderBarContent?: (context: BarRenderContext) => React.ReactNode;
+  renderContext?: BarRenderContext;
+  children?: React.ReactNode;
+}) => {
+  return (
+    <div
+      style={{
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis",
+        fontSize: "11px",
+        fontWeight: "500",
+      }}
+    >
+      {renderBarContent && renderContext
+        ? renderBarContent(renderContext)
+        : children || label}
+    </div>
+  );
+};
