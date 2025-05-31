@@ -5,7 +5,8 @@ import type { TimeLineBarData } from "../components/TimeLineChart";
  * This demonstrates timeline data based on real championship winners
  * Covers seasons from 1976-77 to 2024-25 with accurate champions
  */
-export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champion)
+export const smLiigaChampions: TimeLineBarData[] = [
+  // 1976: TPS (real champion)
   {
     id: "tps",
     start: "1976-09-01",
@@ -31,7 +32,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Ässät",
     backgroundColor: "#0066CC", // Blue
     textColor: "white",
-  },  // 1979: Tappara (real champion)
+  }, // 1979: Tappara (real champion)
   {
     id: "tappara",
     start: "1979-09-01",
@@ -57,7 +58,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Kärpät",
     backgroundColor: "#800080", // Purple
     textColor: "white",
-  },  // 1982: Tappara (real champion)
+  }, // 1982: Tappara (real champion)
   {
     id: "tappara",
     start: "1982-09-01",
@@ -83,7 +84,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Tappara",
     backgroundColor: "#004225",
     textColor: "white",
-  },  // 1985: Ilves (real champion)
+  }, // 1985: Ilves (real champion)
   {
     id: "ilves",
     start: "1985-09-01",
@@ -109,7 +110,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "TPS",
     backgroundColor: "#FFD700",
     textColor: "black",
-  },  // 1992: Jokerit (real champion)
+  }, // 1992: Jokerit (real champion)
   {
     id: "jokerit",
     start: "1992-09-01",
@@ -135,7 +136,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Jokerit",
     backgroundColor: "#32CD32",
     textColor: "black",
-  },  // 1995: TPS (real champion)
+  }, // 1995: TPS (real champion)
   {
     id: "tps",
     start: "1995-09-01",
@@ -161,7 +162,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "HIFK",
     backgroundColor: "#C41E3A",
     textColor: "white",
-  },  // 1999-2001: TPS consecutive championships (real)
+  }, // 1999-2001: TPS consecutive championships (real)
   {
     id: "tps",
     start: "1999-09-01",
@@ -187,7 +188,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Tappara",
     backgroundColor: "#004225",
     textColor: "white",
-  },  // 2004-2005: Kärpät consecutive championships (real)
+  }, // 2004-2005: Kärpät consecutive championships (real)
   {
     id: "karpat",
     start: "2004-09-01",
@@ -213,7 +214,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Kärpät",
     backgroundColor: "#800080",
     textColor: "white",
-  },  // 2009: JYP (real champion)
+  }, // 2009: JYP (real champion)
   {
     id: "jyp",
     start: "2009-09-01",
@@ -239,7 +240,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "HIFK",
     backgroundColor: "#C41E3A",
     textColor: "white",
-  },  // 2012: JYP (real champion)
+  }, // 2012: JYP (real champion)
   {
     id: "jyp",
     start: "2012-09-01",
@@ -247,7 +248,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "JYP",
     backgroundColor: "#228B22",
     textColor: "white",
-  },  // 2013: Ässät (real champion)
+  }, // 2013: Ässät (real champion)
   {
     id: "assat",
     start: "2013-09-01",
@@ -255,7 +256,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Ässät",
     backgroundColor: "#0066CC",
     textColor: "white",
-  },  // 2014-2015: Kärpät consecutive championships (real)
+  }, // 2014-2015: Kärpät consecutive championships (real)
   {
     id: "karpat",
     start: "2014-09-01",
@@ -263,7 +264,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Kärpät",
     backgroundColor: "#800080",
     textColor: "white",
-  },  // 2016-2017: Tappara consecutive championships (real)
+  }, // 2016-2017: Tappara consecutive championships (real)
   {
     id: "tappara",
     start: "2016-09-01",
@@ -271,7 +272,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Tappara",
     backgroundColor: "#004225",
     textColor: "white",
-  },  // 2018: Kärpät (real champion)
+  }, // 2018: Kärpät (real champion)
   {
     id: "karpat",
     start: "2018-09-01",
@@ -279,7 +280,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Kärpät",
     backgroundColor: "#800080",
     textColor: "white",
-  },  // 2019: HPK (real champion)
+  }, // 2019: HPK (real champion)
   {
     id: "hpk",
     start: "2019-09-01",
@@ -287,7 +288,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "HPK",
     backgroundColor: "#FFA500",
     textColor: "black",
-  },  // 2021: Lukko (real champion)
+  }, // 2021: Lukko (real champion)
   {
     id: "lukko",
     start: "2020-09-01",
@@ -295,7 +296,7 @@ export const smLiigaChampions: TimeLineBarData[] = [  // 1976: TPS (real champio
     label: "Lukko",
     backgroundColor: "#4169E1", // Royal Blue
     textColor: "white",
-  },  // 2022-2024: Tappara consecutive championships (real)
+  }, // 2022-2024: Tappara consecutive championships (real)
   {
     id: "tappara",
     start: "2021-09-01",
