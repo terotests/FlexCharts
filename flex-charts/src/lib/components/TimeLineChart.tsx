@@ -362,8 +362,7 @@ const TimeLineBar = (props: {
           style={{
             position: "absolute",
             left: "0px", // Position to the left of the timeline
-            top: "50%",
-            transform: "translateY(-50%)",
+            top: "0px",
             zIndex: 1,
             pointerEvents: "none", // Don't interfere with row clicks
           }}
@@ -461,6 +460,8 @@ export const TimeLineChart = forwardRef<
     renderRowPrefix?: (context: BarRenderContext) => React.ReactNode;
     renderBarSuffix?: (context: BarRenderContext) => React.ReactNode;
     renderBarContent?: (context: BarRenderContext) => React.ReactNode;
+    // Layout options
+    leftMargin?: string | number; // Margin for prefix elements that overflow to the left
   }
 >((props, ref) => {
   const {
@@ -474,6 +475,7 @@ export const TimeLineChart = forwardRef<
     renderRowPrefix,
     renderBarSuffix,
     renderBarContent,
+    leftMargin = 0, // Default to no margin
   } = props;
   const start = useMemo(() => parseTimeString(startDate), [startDate]);
   const end = useMemo(() => parseTimeString(endDate), [endDate]);
@@ -760,9 +762,10 @@ export const TimeLineChart = forwardRef<
             justifyContent: "stretch",
             gap: "6px",
             position: "relative",
-            overflow: "hidden",
             minWidth: "100%",
             height: "100%",
+            marginLeft:
+              typeof leftMargin === "number" ? `${leftMargin}px` : leftMargin,
           }}
         >
           {/* Vertical grid lines container */}

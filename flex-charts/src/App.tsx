@@ -511,6 +511,7 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
             interval={customInterval}
             width="80%"
             labelFontSize="10px"
+            leftMargin={100} // Add margin for prefix labels
             key={selectedDataset.id} // Force re-render when dataset changes
             bars={selectedDataset.data}
             onBarClick={handleBarClick}
@@ -525,6 +526,12 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
                   minWidth: "50px",
                   textAlign: "left",
                   paddingRight: "8px",
+                  position: "absolute",
+                  left: "-90px",
+                  top: "0px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
                   fontWeight: "bold",
                   pointerEvents: "auto", // Enable interactions since it's positioned absolutely
                 }}
