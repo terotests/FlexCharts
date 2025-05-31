@@ -265,22 +265,109 @@ function InteractiveTimeline() {
 - `controller: TimeLineChartController` - Chart controller reference
 - `event: React.MouseEvent` - Original mouse event
 
+### Custom Rendering
+
+FlexCharts provides flexible custom rendering options for each timeline row:
+
+```tsx
+import { TimeLineChart, type BarRenderContext } from "@terotests/flex-charts";
+
+function CustomTimeline() {
+  // Custom prefix component (rendered at the start of each row)
+  const renderRowPrefix = (context: BarRenderContext) => (
+    <div
+      style={{
+        padding: "4px 8px",
+        backgroundColor: "#f0f0f0",
+        borderRadius: "4px",
+        fontSize: "12px",
+        fontWeight: "bold",
+      }}
+    >
+      ID: {context.bar.id}
+    </div>
+  );
+
+  // Custom suffix component (rendered after the bar)
+  const renderBarSuffix = (context: BarRenderContext) => (
+    <div
+      style={{
+        fontSize: "12px",
+        color: "#666",
+        marginLeft: "8px",
+      }}
+    >
+      Duration: {context.bar.end} - {context.bar.start}
+    </div>
+  );
+
+  // Custom bar content (replaces default label)
+  const renderBarContent = (context: BarRenderContext) => (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+      }}
+    >
+      <span>🎯</span>
+      <span>{context.bar.label}</span>
+      <span style={{ fontSize: "10px", opacity: 0.8 }}>
+        ({Math.round(context.relativePosition.center * 100)}%)
+      </span>
+    </div>
+  );
+
+  return (
+    <TimeLineChart
+      startDate="2020"
+      endDate="2025"
+      interval="Y"
+      bars={projectData}
+      renderRowPrefix={renderRowPrefix}
+      renderBarSuffix={renderBarSuffix}
+      renderBarContent={renderBarContent}
+    />
+  );
+}
+```
+
+#### BarRenderContext Interface
+
+The render functions receive a `BarRenderContext` object with:
+
+- `bar: TimeLineBarData` - The bar's data
+- `controller: TimeLineChartController` - Chart controller for programmatic control
+- `relativePosition: { start, end, center }` - Bar position within chart (0-1)
+- `dimensions: { width, height }` - Bar's pixel dimensions
+
+#### Rendering Options
+
+1. **Row Prefix (`renderRowPrefix`)**: Rendered at the start of each row, useful for labels, IDs, or status indicators
+2. **Bar Suffix (`renderBarSuffix`)**: Rendered after the bar on the same row, perfect for additional metadata or duration information
+3. **Bar Content (`renderBarContent`)**: Replaces the default bar label, allowing complete customization of bar content
+
+All render functions have access to the chart controller, enabling interactive custom components that can programmatically control the timeline.
+
 ## Component Props
 
 ### TimeLineChart Props
 
-| Prop            | Type                                  | Required | Description                                                                                                |
-| --------------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
-| `startDate`     | `string`                              | Yes      | Start date of the timeline (e.g., "2020", "01/2020")                                                       |
-| `endDate`       | `string`                              | Yes      | End date of the timeline (e.g., "2025", "12/2025")                                                         |
-| `interval`      | `TTimeIntervalType`                   | Yes      | Time interval (`"Y"`, `"M"`, `"Q"`, `"W"`, `"D"`, `"H"`, `"m"`, `"s"`, `"5Y"`, `"10Y"`, `"50Y"`, `"100Y"`) |
-| `bars`          | `TimeLineBarData[]`                   | No       | Array of bar data to display                                                                               |
-| `width`         | `string`                              | No       | Width of the component (default: "100%")                                                                   |
-| `labelFontSize` | `string`                              | No       | Font size for time slot labels (default: "12px")                                                           |
-| `renderTitle`   | `(time: TTimeInterval) => string`     | No       | Custom function to render time slot labels                                                                 |
-| `onBarClick`    | `(clickData: BarClickData) => void`   | No       | Callback function called when a bar is clicked                                                             |
-| `onRowClick`    | `(clickData: RowClickData) => void`   | No       | Callback function called when a row container is clicked                                                   |
-| `onChartHover`  | `(hoverData: ChartHoverData) => void` | No       | Callback function called when mouse hovers over the chart                                                  |
+| Prop               | Type                                             | Required | Description                                                                                                |
+| ------------------ | ------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `startDate`        | `string`                                         | Yes      | Start date of the timeline (e.g., "2020", "01/2020")                                                       |
+| `endDate`          | `string`                                         | Yes      | End date of the timeline (e.g., "2025", "12/2025")                                                         |
+| `interval`         | `TTimeIntervalType`                              | Yes      | Time interval (`"Y"`, `"M"`, `"Q"`, `"W"`, `"D"`, `"H"`, `"m"`, `"s"`, `"5Y"`, `"10Y"`, `"50Y"`, `"100Y"`) |
+| `bars`             | `TimeLineBarData[]`                              | No       | Array of bar data to display                                                                               |
+| `width`            | `string`                                         | No       | Width of the component (default: "100%")                                                                   |
+| `labelFontSize`    | `string`                                         | No       | Font size for time slot labels (default: "12px")                                                           |
+| `renderTitle`      | `(time: TTimeInterval) => string`                | No       | Custom function to render time slot labels                                                                 |
+| `onBarClick`       | `(clickData: BarClickData) => void`              | No       | Callback function called when a bar is clicked                                                             |
+| `onRowClick`       | `(clickData: RowClickData) => void`              | No       | Callback function called when a row container is clicked                                                   |
+| `onChartHover`     | `(hoverData: ChartHoverData) => void`            | No       | Callback function called when mouse hovers over the chart                                                  |
+| `renderRowPrefix`  | `(context: BarRenderContext) => React.ReactNode` | No       | Custom component rendered at the start of each row                                                         |
+| `renderBarSuffix`  | `(context: BarRenderContext) => React.ReactNode` | No       | Custom component rendered after each bar on the same row                                                   |
+| `renderBarContent` | `(context: BarRenderContext) => React.ReactNode` | No       | Custom component rendered inside the bar (replaces default label)                                          |
 
 ### TimeLineBarData Interface
 

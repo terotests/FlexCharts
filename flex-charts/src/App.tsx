@@ -7,6 +7,7 @@ import {
   type BarClickData,
   type RowClickData,
   type ChartHoverData,
+  type BarRenderContext,
 } from "./lib/components/TimeLineChart";
 import { TimeLineChartController } from "./lib/controllers/TimeLineChartController";
 import { customBars } from "./lib/data/customBars";
@@ -515,7 +516,78 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
             onBarClick={handleBarClick}
             onRowClick={handleRowClick}
             onChartHover={handleChartHover}
-            renderTitle={selectedDataset.renderTitle}
+            renderTitle={selectedDataset.renderTitle} // Custom render functions
+            renderRowPrefix={(context: BarRenderContext) => (
+              <div
+                style={{
+                  fontSize: "10px",
+                  color: theme.mode === "light" ? "#666" : "#aaa",
+                  minWidth: "50px",
+                  textAlign: "left",
+                  paddingRight: "8px",
+                  fontWeight: "bold",
+                  pointerEvents: "auto", // Enable interactions since it's positioned absolutely
+                }}
+                title={`Bar ${context.bar.id} - Duration: ${context.bar.start} to ${context.bar.end}`}
+              >
+                {context.bar.label}
+              </div>
+            )}
+            renderBarSuffix={(context: BarRenderContext) => (
+              <div
+                style={{
+                  fontSize: "9px",
+                  color: theme.mode === "light" ? "#888" : "#ccc",
+                  marginLeft: "8px",
+                  padding: "2px 6px",
+                  backgroundColor:
+                    theme.mode === "light" ? "#f0f0f0" : "#404040",
+                  borderRadius: "3px",
+                  whiteSpace: "nowrap",
+                }}
+                title={`Duration: ${context.bar.start} to ${context.bar.end}`}
+              >
+                {(() => {
+                  // Calculate duration in years
+                  const startYear = parseInt(
+                    context.bar.start.toString().slice(0, 4)
+                  );
+                  const endYear = parseInt(
+                    context.bar.end.toString().slice(0, 4)
+                  );
+                  const duration = endYear - startYear + 1;
+                  return `${duration}yr${duration !== 1 ? "s" : ""}`;
+                })()}
+              </div>
+            )}
+            renderBarContent={(context: BarRenderContext) => (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  padding: "0 8px",
+                  fontSize: "11px",
+                  fontWeight: "500",
+                }}
+              >
+                <span style={{ flexShrink: 0 }}>{context.bar.label}</span>
+                {context.dimensions.width > 100 && (
+                  <span
+                    style={{
+                      fontSize: "9px",
+                      opacity: 0.8,
+                      marginLeft: "8px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    ({context.bar.start.toString().slice(0, 4)}-
+                    {context.bar.end.toString().slice(0, 4)})
+                  </span>
+                )}
+              </div>
+            )}
           />
         </div>
         {/* Chart Controls - moved below chart for better UX */}
