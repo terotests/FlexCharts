@@ -268,7 +268,7 @@ const TimeLineRowComponent = (props: {
         width: "100%",
         position: "relative",
       }}
-      className="timeline-row-container"
+      className={"timeline-row-container " + row.rowId}
       onClick={handleRowClick}
     >
       {/* Row prefix */}
@@ -341,40 +341,61 @@ const TimeLineRowComponent = (props: {
             });
           };
 
+          const renderContextLocal = {
+            ...renderContext,
+            bar: {
+              id: slot.id,
+              start: slot.start,
+              end: slot.end,
+              label: slot.label,
+              color: slot.color,
+              backgroundColor: slot.backgroundColor,
+              textColor: slot.textColor,
+            },
+          };
+
           return (
             <div
               key={`${slot.id}-${slotIndex}`}
-              className="bar"
+              className={`bar ${slot.id}`}
+              // Add CSS variable for the slot color
+
               ref={(element) => {
                 if (onBarElementRef) {
                   onBarElementRef(slot.id, element);
                 }
               }}
               onClick={handleSlotClick}
-              style={{
-                ...getBarStyles({
-                  backgroundColor: slot.backgroundColor,
-                  color: slot.color,
-                  textColor: slot.textColor,
-                  isClickable: !!onBarClick,
-                }),
-                marginLeft: slotProsStart,
-                width: slotProsWidth,
-                alignItems: "left",
-                overflow: "unset",
-                justifyContent: "flex-start",
-                position: slotIndex > 0 ? "absolute" : undefined,
-                top: "0px",
-                left: "0px",
-                height: "1.9em",
-              }}
+              style={
+                {
+                  ...getBarStyles({
+                    backgroundColor: slot.backgroundColor,
+                    color: slot.color,
+                    textColor: slot.textColor,
+                    isClickable: !!onBarClick,
+                  }),
+                  marginLeft: slotProsStart,
+                  width: slotProsWidth,
+                  alignItems: "left",
+                  overflow: "unset",
+                  justifyContent: "flex-start",
+                  position: slotIndex > 0 ? "absolute" : undefined,
+                  top: "0px",
+                  left: "0px",
+                  height: "1.9em",
+                  "--slot-color": slot.backgroundColor || "transparent",
+                  "--slot-background-color":
+                    slot.backgroundColor || "transparent",
+                  "--slot-text-color": slot.textColor || "black",
+                } as React.CSSProperties
+              }
               title={`${slot.label}: ${slot.start} - ${slot.end}`}
             >
               {/* Slot content */}
               <TimeLineBarContent
                 label={slot.label}
                 renderBarContent={renderBarContent}
-                renderContext={renderContext}
+                renderContext={renderContextLocal}
               />
             </div>
           );

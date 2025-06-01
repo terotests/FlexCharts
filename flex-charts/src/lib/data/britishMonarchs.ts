@@ -1,10 +1,58 @@
 import type { TimeLineBarData } from "../components/TimeLineChart";
 
 /**
+ * British Royal Houses as secondary time ranges
+ * All houses have the same ID "houses" to group them together
+ */
+export const britishRoyalHouses: TimeLineBarData[] = [
+  {
+    id: "houses",
+    start: "1558",
+    end: "1603",
+    label: "House of Tudor",
+    backgroundColor: "#DC143C",
+    textColor: "white",
+  },
+  {
+    id: "houses",
+    start: "1603",
+    end: "1714",
+    label: "House of Stuart",
+    backgroundColor: "#DAA520",
+    textColor: "black",
+  },
+  {
+    id: "houses",
+    start: "1714",
+    end: "1901",
+    label: "House of Hanover",
+    backgroundColor: "#4169E1",
+    textColor: "white",
+  },
+  {
+    id: "houses",
+    start: "1901",
+    end: "1917",
+    label: "House of Saxe-Coburg and Gotha",
+    backgroundColor: "#8B4A8B",
+    textColor: "white",
+  },
+  {
+    id: "houses",
+    start: "1917",
+    end: "2025",
+    label: "House of Windsor",
+    backgroundColor: "#8B0000",
+    textColor: "white",
+  },
+];
+
+/**
  * British Monarchs from 1600 to present day
  * Data includes major royal houses and their reigns
  */
 export const britishMonarchs: TimeLineBarData[] = [
+  ...britishRoyalHouses,
   // House of Tudor
   {
     id: "elizabeth-i",
@@ -199,7 +247,7 @@ export const britishMonarchsMetadata = {
   title: "British Monarchs (1558-2025)",
   description:
     "Timeline of British monarchs from Elizabeth I to Charles III, organized by royal houses",
-  startDate: "1550",
+  startDate: "1557",
   endDate: "2050",
   interval: "Y" as const,
   colorLegend: {
