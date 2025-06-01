@@ -28,6 +28,8 @@ export {
 
 // Utilities
 export { useChartTheme } from "./hooks/useChartTheme";
+export { TimeInterval, TimeSpan, Time } from "./TimeInterval";
+export { toString as timeToString } from "./time";
 
 // Types
 export type { ChartData, ChartOptions } from "./types";
@@ -35,4 +37,6 @@ export type {
   TTimeInterval,
   TTimeIntervalType,
   TTimeIntervalTypeWithDecades,
+  TTimeParserKernel,
+  TDelimiter,
 } from "./time";

@@ -139,7 +139,7 @@ const TimeLineRowComponent = (props: {
   chartContainerRef?: React.RefObject<HTMLDivElement | null>;
   controller?: TimeLineChartController;
   renderRowPrefix?: (context: BarRenderContext) => React.ReactNode;
-  renderBarSuffix?: (context: BarRenderContext) => React.ReactNode;
+  renderRowSuffix?: (context: BarRenderContext) => React.ReactNode;
   renderBarContent?: (context: BarRenderContext) => React.ReactNode;
 }) => {
   const {
@@ -151,7 +151,7 @@ const TimeLineRowComponent = (props: {
     chartContainerRef,
     controller,
     renderRowPrefix,
-    renderBarSuffix,
+    renderRowSuffix,
     renderBarContent,
   } = props;
 
@@ -378,11 +378,10 @@ const TimeLineRowComponent = (props: {
               />
             </div>
           );
-        })}
-
+        })}{" "}
         {/* Row suffix */}
         <TimeLineRowSuffix
-          renderBarSuffix={renderBarSuffix}
+          renderRowSuffix={renderRowSuffix}
           renderContext={renderContext}
         />
       </div>
@@ -411,7 +410,7 @@ const TimeLineBar = (props: {
   controller?: TimeLineChartController;
   // Custom render functions
   renderRowPrefix?: (context: BarRenderContext) => React.ReactNode;
-  renderBarSuffix?: (context: BarRenderContext) => React.ReactNode;
+  renderRowSuffix?: (context: BarRenderContext) => React.ReactNode;
   renderBarContent?: (context: BarRenderContext) => React.ReactNode;
 }) => {
   const {
@@ -429,7 +428,7 @@ const TimeLineBar = (props: {
     chartContainerRef,
     controller,
     renderRowPrefix,
-    renderBarSuffix,
+    renderRowSuffix,
     renderBarContent,
   } = props;
 
@@ -673,10 +672,10 @@ const TimeLineBar = (props: {
               {props.children}
             </TimeLineBarContent>
           </div>
-        </div>
+        </div>{" "}
         {/* Bar suffix - using shared component */}
         <TimeLineRowSuffix
-          renderBarSuffix={renderBarSuffix}
+          renderRowSuffix={renderRowSuffix}
           renderContext={renderContext}
         />
       </div>
@@ -696,10 +695,9 @@ export const TimeLineChart = forwardRef<
     bars?: TimeLineBarData[];
     onBarClick?: (clickData: BarClickData) => void;
     onRowClick?: (clickData: RowClickData) => void;
-    onChartHover?: (hoverData: ChartHoverData) => void;
-    // Custom render functions
+    onChartHover?: (hoverData: ChartHoverData) => void; // Custom render functions
     renderRowPrefix?: (context: BarRenderContext) => React.ReactNode;
-    renderBarSuffix?: (context: BarRenderContext) => React.ReactNode;
+    renderRowSuffix?: (context: BarRenderContext) => React.ReactNode;
     renderBarContent?: (context: BarRenderContext) => React.ReactNode;
     // Layout options
     leftMargin?: string | number; // Margin for prefix elements that overflow to the left
@@ -714,7 +712,7 @@ export const TimeLineChart = forwardRef<
     onRowClick,
     onChartHover,
     renderRowPrefix,
-    renderBarSuffix,
+    renderRowSuffix,
     renderBarContent,
     leftMargin = 0, // Default to no margin
   } = props;
@@ -739,14 +737,13 @@ export const TimeLineChart = forwardRef<
 
   // Use provided bars or empty array if no bars provided - wrapped in useMemo
   const barData = useMemo(() => bars || [], [bars]);
-
   // Process timeline data to group bars by ID for multi-slot rendering
   const timelineRows = useMemo(() => {
     return processTimelineData(barData, {
       start: startDate,
       end: endDate,
     });
-  }, [barData]);
+  }, [barData, startDate, endDate]);
 
   // Determine if we should use multi-slot rendering (when there are rows with multiple slots)
   const useMultiSlotRendering = useMemo(() => {
@@ -1034,9 +1031,8 @@ export const TimeLineChart = forwardRef<
             ))}
           </div>{" "}
           <div className="time-bars">
-            {useMultiSlotRendering
-              ? // Multi-slot rendering for rows with multiple slots
-                timelineRows.map((row) => (
+            {useMultiSlotRendering // Multi-slot rendering for rows with multiple slots
+              ? timelineRows.map((row) => (
                   <TimeLineRowComponent
                     key={row.rowId}
                     row={row}
@@ -1047,7 +1043,7 @@ export const TimeLineChart = forwardRef<
                     chartContainerRef={chartElementRef}
                     controller={controllerRef.current}
                     renderRowPrefix={renderRowPrefix}
-                    renderBarSuffix={renderBarSuffix}
+                    renderRowSuffix={renderRowSuffix}
                     renderBarContent={renderBarContent}
                   />
                 ))
@@ -1069,7 +1065,7 @@ export const TimeLineChart = forwardRef<
                     chartContainerRef={chartElementRef}
                     controller={controllerRef.current}
                     renderRowPrefix={renderRowPrefix}
-                    renderBarSuffix={renderBarSuffix}
+                    renderRowSuffix={renderRowSuffix}
                     renderBarContent={renderBarContent}
                   >
                     {bar.label}
@@ -1143,13 +1139,13 @@ const TimeLineRowPrefix = ({
 
 // Shared row suffix component
 const TimeLineRowSuffix = ({
-  renderBarSuffix,
+  renderRowSuffix,
   renderContext,
 }: {
-  renderBarSuffix?: (context: BarRenderContext) => React.ReactNode;
+  renderRowSuffix?: (context: BarRenderContext) => React.ReactNode;
   renderContext: BarRenderContext;
 }) => {
-  if (!renderBarSuffix) return null;
+  if (!renderRowSuffix) return null;
 
   return (
     <div
@@ -1171,7 +1167,7 @@ const TimeLineRowSuffix = ({
           height: "100%",
         }}
       >
-        {renderBarSuffix(renderContext)}
+        {renderRowSuffix(renderContext)}
       </div>
     </div>
   );

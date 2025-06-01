@@ -287,9 +287,8 @@ function CustomTimeline() {
       ID: {context.bar.id}
     </div>
   );
-
   // Custom suffix component (rendered after the bar)
-  const renderBarSuffix = (context: BarRenderContext) => (
+  const renderRowSuffix = (context: BarRenderContext) => (
     <div
       style={{
         fontSize: "12px",
@@ -325,7 +324,7 @@ function CustomTimeline() {
       interval="Y"
       bars={projectData}
       renderRowPrefix={renderRowPrefix}
-      renderBarSuffix={renderBarSuffix}
+      renderRowSuffix={renderRowSuffix}
       renderBarContent={renderBarContent}
     />
   );
@@ -344,7 +343,7 @@ The render functions receive a `BarRenderContext` object with:
 #### Rendering Options
 
 1. **Row Prefix (`renderRowPrefix`)**: Rendered at the start of each row, useful for labels, IDs, or status indicators
-2. **Bar Suffix (`renderBarSuffix`)**: Rendered after the bar on the same row, perfect for additional metadata or duration information
+2. **Bar Suffix (`renderRowSuffix`)**: Rendered after the bar on the same row, perfect for additional metadata or duration information
 3. **Bar Content (`renderBarContent`)**: Replaces the default bar label, allowing complete customization of bar content
 
 All render functions have access to the chart controller, enabling interactive custom components that can programmatically control the timeline.
@@ -366,7 +365,7 @@ All render functions have access to the chart controller, enabling interactive c
 | `onRowClick`       | `(clickData: RowClickData) => void`              | No       | Callback function called when a row container is clicked                                                   |
 | `onChartHover`     | `(hoverData: ChartHoverData) => void`            | No       | Callback function called when mouse hovers over the chart                                                  |
 | `renderRowPrefix`  | `(context: BarRenderContext) => React.ReactNode` | No       | Custom component rendered at the start of each row                                                         |
-| `renderBarSuffix`  | `(context: BarRenderContext) => React.ReactNode` | No       | Custom component rendered after each bar on the same row                                                   |
+| `renderRowSuffix`  | `(context: BarRenderContext) => React.ReactNode` | No       | Custom component rendered after each bar on the same row                                                   |
 | `renderBarContent` | `(context: BarRenderContext) => React.ReactNode` | No       | Custom component rendered inside the bar (replaces default label)                                          |
 
 ### TimeLineBarData Interface
