@@ -567,7 +567,7 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
                 {context.bar.label}
               </div>
             )}
-            renderBarSuffix={(context: BarRenderContext) => (
+            renderRowSuffix={(context: BarRenderContext) => (
               <div
                 style={{
                   fontSize: "9px",

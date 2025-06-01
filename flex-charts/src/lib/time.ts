@@ -333,10 +333,8 @@ export const convertTimeIntervalUnitToSeconds = (
 ): number => {
   switch (type) {
     case "Y":
-      if (year !== null) {
-        if (isLeapYear(year)) {
-          return 366 * 24 * 60 * 60; // Leap year to seconds
-        }
+      if (year && isLeapYear(year)) {
+        return 366 * 24 * 60 * 60; // Leap year to seconds
       }
       return 365 * 24 * 60 * 60; // Years to seconds
     case "M":
@@ -437,11 +435,27 @@ export function getTimeDifferenceInSeconds(
   return endInSeconds - startInSeconds;
 }
 
+export function getIntervalAccuracy(time: TTimeInterval): TTimeIntervalType {
+  if (!time.increment) {
+    return time.type;
+  }
+  return getIntervalAccuracy(time.increment);
+}
+
 export function getTimeDifferenceInUnit(
   start: TTimeInterval,
   end: TTimeInterval,
   unit: TTimeIntervalType
 ): number {
+  const acc1 = getIntervalAccuracy(start);
+  const acc2 = getIntervalAccuracy(end);
+  if (unit === "Y") {
+    if (acc1 === "Y" && acc2 === "Y") {
+      // If both intervals are in years, we can return the difference in years
+      return end.value - start.value;
+    }
+  }
+
   const secondsDifference = getTimeDifferenceInSeconds(start, end);
 
   const getRoudingFactor = (unit: TTimeIntervalType): number => {
@@ -1204,4 +1218,151 @@ export function flattenResults(
     }
   }
   return flattened;
+}
+
+/**
+ * Compare two TTimeInterval structures chronologically
+ * @param a First time interval
+ * @param b Second time interval
+ * @returns -1 if a is before b, 0 if they are equal, 1 if a is after b
+ */
+export function compare(a: TTimeInterval, b: TTimeInterval): -1 | 0 | 1 {
+  try {
+    const aSeconds = convertToSeconds(a);
+    const bSeconds = convertToSeconds(b);
+
+    if (aSeconds < bSeconds) {
+      return -1;
+    } else if (aSeconds > bSeconds) {
+      return 1;
+    } else {
+      return 0;
+    }
+  } catch {
+    // If conversion to seconds fails, fall back to type and value comparison
+
+    // First compare by type hierarchy (Year < Month < Quarter < Week < Day < Hour < Minute < Second)
+    const typeOrder: TTimeIntervalType[] = [
+      "Y",
+      "M",
+      "Q",
+      "W",
+      "D",
+      "H",
+      "m",
+      "s",
+    ];
+    const aTypeIndex = typeOrder.indexOf(a.type);
+    const bTypeIndex = typeOrder.indexOf(b.type);
+
+    if (aTypeIndex !== bTypeIndex) {
+      return aTypeIndex < bTypeIndex ? -1 : 1;
+    }
+
+    // Same type, compare values
+    if (a.value < b.value) {
+      return -1;
+    } else if (a.value > b.value) {
+      return 1;
+    }
+
+    // Same type and value, compare increments recursively
+    if (a.increment && b.increment) {
+      return compare(a.increment, b.increment);
+    } else if (a.increment && !b.increment) {
+      return 1; // a has more precision, so it's "after"
+    } else if (!a.increment && b.increment) {
+      return -1; // b has more precision, so a is "before"
+    }
+
+    return 0; // Completely equal
+  }
+}
+
+/**
+ * Check if two TTimeInterval structures represent the same logical time period
+ * @param a First time interval
+ * @param b Second time interval
+ * @returns true if the time intervals represent the same logical time, false otherwise
+ */
+export function areEqual(a: TTimeInterval, b: TTimeInterval): boolean {
+  return compare(a, b) === 0;
+}
+
+/**
+ * Convert a TTimeInterval to a string representation based on the interval's accuracy
+ * @param time The time interval to convert
+ * @param accuracy Optional accuracy level to override the interval's natural accuracy
+ * @param delimiter The delimiter to use between components (default: "-")
+ * @returns A string representation of the time interval
+ *
+ * @example
+ * // Year only - automatically detects accuracy
+ * toString({ type: "Y", value: 2023 }) // "2023"
+ *
+ * // Quarter - automatically detects accuracy
+ * toString({ type: "Y", value: 2023, increment: { type: "Q", value: 1 } }) // "2023/Q1"
+ *
+ * // Month - automatically detects accuracy
+ * toString({ type: "Y", value: 2023, increment: { type: "M", value: 3 } }) // "2023-03"
+ *
+ * // Day - automatically detects accuracy
+ * toString({ type: "Y", value: 2023, increment: { type: "M", value: 3, increment: { type: "D", value: 15 } } }) // "2023-03-15"
+ *
+ * // Override accuracy
+ * toString({ type: "Y", value: 2023, increment: { type: "M", value: 3, increment: { type: "D", value: 15 } } }, "M") // "2023-03"
+ */
+export function toString(time: TTimeInterval): string {
+  if (!time) {
+    throw new Error("Invalid time interval");
+  }
+
+  const padZero = (num: number): string => {
+    return num.toString().padStart(2, "0");
+  };
+
+  switch (time.type) {
+    case "Y":
+      if (time.increment) {
+        if (time.increment.type === "Q") {
+          return `${time.value}/${toString(time.increment)}`;
+        }
+        if (time.increment.type === "M") {
+          return `${time.value}-${toString(time.increment)}`;
+        }
+      }
+      return `${time.value}`; // Year only
+    case "Q":
+      return `Q${time.increment?.value || 1}`; // Quarter
+    case "M":
+      if (time.increment) {
+        return `${padZero(time.value)}-${toString(time.increment)}`; // Month with year
+      }
+      return `${padZero(time.value)}`; // Month only
+    case "D":
+      if (time.increment) {
+        return `${padZero(time.value)} ${toString(time.increment)}`; // Day with month and year
+      }
+      return `${padZero(time.value)}`; // Day only
+    case "H":
+      if (time.increment) {
+        return `${padZero(time.value)}:${toString(time.increment)}`; // Hour with day, month, and year
+      }
+      return `${padZero(time.value)}`; // Hour only
+
+    case "m":
+      if (time.increment) {
+        return `${padZero(time.value)}:${toString(time.increment)}`; // Minute with hour, day, month, and year
+      }
+      return `${padZero(time.value)}`; // Minute only
+    case "s":
+      return `${padZero(time.value)}`; // Second only
+    case "W":
+      if (time.increment) {
+        return `${padZero(time.value)} ${toString(time.increment)}`; // Week with day, month, and year
+      }
+      return `W${padZero(time.value)}`; // Week only
+    default:
+      throw new Error(`Unsupported time interval type: ${time.type}`);
+  }
 }
