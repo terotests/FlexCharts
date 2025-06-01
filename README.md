@@ -12,22 +12,30 @@ A flexible chart library for React applications focused on time-based visualizat
 
 - 📐 **Flexible Layout System** - Adaptive wireframe structure with proper data positioning
 - 🔄 **Smooth Scrolling** - Horizontal and vertical scrolling with touch support
-- 📏 **Configurable Axes** - Customizable x and y axis with support for various data types
+- 📏 **Configurable Time Intervals** - Support for years, months, quarters, weeks, days, hours, minutes, seconds, and decade intervals
 - 📊 **Timeline Charts** - Interactive timeline visualizations for project management and data analysis
+- 🧩 **Multi-Slot Rendering** - Automatic handling of overlapping time periods with intelligent grouping
 
-### Advanced Capabilities
+### Advanced Time Handling
 
-- 🧩 **Gantt Chart Support** - Connect time series elements to create dependencies
-- ✏️ **Live Editing** - Real-time chart modification and data manipulation
-- 📤 **Data Export** - Export to Excel, CSV and other formats
-- 🎛️ **Live Configuration** - Adjust chart settings and appearance in real-time
+- ⏰ **TimeInterval Class** - Chainable fluent API for time operations and calculations
+- 📅 **Flexible Time Parsing** - Support for multiple date formats and custom parser kernels
+- 🔢 **Time Calculations** - Built-in functions for time differences, positioning, and conversions
+- 📈 **Timeline Data Processing** - Automatic grouping and slot management for complex timeline data
+
+### Interactive Features
+
+- 🎯 **Event Handling** - Comprehensive bar clicks, row clicks, and hover events with detailed context
+- 🎛️ **Programmatic Control** - Chart controller for scrolling, centering, and navigation
+- ✏️ **Custom Rendering** - Flexible row prefix, suffix, and bar content customization
+- 📱 **Responsive Design** - Adapt to different screen sizes and orientations with zoom support
 
 ### User Experience
 
-- 🎨 **Theming & Customization** - Light/dark mode and custom rendering overrides
+- 🎨 **Theming & Customization** - CSS custom properties for complete visual control
 - 🚀 **Performance Optimization** - Virtualization for large datasets and view optimization
-- 📱 **Responsive Design** - Adapt to different screen sizes and orientations
 - 🎯 **Full TypeScript Support** - Complete type definitions for enhanced developer experience
+- 📤 **Data Export Utilities** - Timeline data processing and conversion utilities
 
 ## Installation
 
@@ -265,6 +273,60 @@ function InteractiveTimeline() {
 - `controller: TimeLineChartController` - Chart controller reference
 - `event: React.MouseEvent` - Original mouse event
 
+### Multi-Slot Timeline Rendering
+
+FlexCharts automatically handles complex timeline data with overlapping periods by grouping bars with the same ID into multi-slot rows:
+
+```tsx
+import { TimeLineChart, type TimeLineBarData } from "@terotests/flex-charts";
+
+// Timeline data with overlapping periods (same ID)
+const complexTimeline: TimeLineBarData[] = [
+  {
+    id: "project1", // Same ID groups items together
+    start: "01/2024",
+    end: "06/2024",
+    label: "Phase 1",
+    backgroundColor: "#3b82f6",
+  },
+  {
+    id: "project1", // Same ID as above
+    start: "05/2024",
+    end: "10/2024",
+    label: "Phase 2",
+    backgroundColor: "#ef4444",
+  },
+  {
+    id: "project2", // Different ID creates separate row
+    start: "03/2024",
+    end: "08/2024",
+    label: "Project B",
+    backgroundColor: "#22c55e",
+  },
+];
+
+function MultiSlotTimeline() {
+  return (
+    <TimeLineChart
+      startDate="01/2024"
+      endDate="12/2024"
+      interval="M"
+      bars={complexTimeline}
+      // FlexCharts automatically detects overlapping periods
+      // and renders them as separate slots within the same row
+    />
+  );
+}
+```
+
+**What happens automatically:**
+
+- Bars with the same `id` are grouped into a single row
+- Overlapping time periods become separate slots within that row
+- Each slot is positioned relative to the row's full time range
+- Non-overlapping bars with different IDs get their own rows
+- The chart intelligently switches between single-bar and multi-slot rendering modes
+
 ### Custom Rendering
 
 FlexCharts provides flexible custom rendering options for each timeline row:
@@ -339,6 +401,7 @@ The render functions receive a `BarRenderContext` object with:
 - `controller: TimeLineChartController` - Chart controller for programmatic control
 - `relativePosition: { start, end, center }` - Bar position within chart (0-1)
 - `dimensions: { width, height }` - Bar's pixel dimensions
+- `slots?: TimeSlot[]` - Optional slots array for multi-slot rendering contexts
 
 #### Rendering Options
 
@@ -347,6 +410,49 @@ The render functions receive a `BarRenderContext` object with:
 3. **Bar Content (`renderBarContent`)**: Replaces the default bar label, allowing complete customization of bar content
 
 All render functions have access to the chart controller, enabling interactive custom components that can programmatically control the timeline.
+
+### Timeline Data Processing
+
+FlexCharts includes powerful utilities for processing and validating timeline data:
+
+```tsx
+import {
+  processTimelineData,
+  validateTimeSlots,
+  flattenTimelineRows,
+  type TimelineRow,
+  type TimeSlot,
+} from "@terotests/flex-charts";
+
+// Process raw timeline data into grouped rows
+const timelineData: TimeLineBarData[] = [
+  { id: "project1", start: "01/2024", end: "06/2024", label: "Phase 1" },
+  { id: "project1", start: "05/2024", end: "10/2024", label: "Phase 2" },
+  { id: "project2", start: "03/2024", end: "08/2024", label: "Project B" },
+];
+
+const processedRows = processTimelineData(timelineData, {
+  start: "01/2024",
+  end: "12/2024",
+});
+
+// Validate timeline slots for overlaps
+const validationErrors = validateTimeSlots(processedRows[0].slots);
+if (validationErrors.length > 0) {
+  console.warn("Timeline validation errors:", validationErrors);
+}
+
+// Convert back to flat data if needed
+const flatData = flattenTimelineRows(processedRows);
+```
+
+#### Timeline Data Processor Features
+
+- **Automatic Grouping**: Groups bars by ID into timeline rows
+- **Overlap Detection**: Identifies and handles overlapping time periods
+- **Relative Positioning**: Calculates relative positions within each row
+- **Validation**: Checks for data integrity and overlap issues
+- **Bidirectional Conversion**: Convert between flat and grouped data structures
 
 ## Component Props
 
@@ -367,12 +473,13 @@ All render functions have access to the chart controller, enabling interactive c
 | `renderRowPrefix`  | `(context: BarRenderContext) => React.ReactNode` | No       | Custom component rendered at the start of each row                                                         |
 | `renderRowSuffix`  | `(context: BarRenderContext) => React.ReactNode` | No       | Custom component rendered after each bar on the same row                                                   |
 | `renderBarContent` | `(context: BarRenderContext) => React.ReactNode` | No       | Custom component rendered inside the bar (replaces default label)                                          |
+| `leftMargin`       | `string \| number`                               | No       | Margin for prefix elements that overflow to the left (default: 0)                                          |
 
 ### TimeLineBarData Interface
 
 ```tsx
 interface TimeLineBarData {
-  id?: string | number; // Optional unique identifier
+  id?: string | number; // Optional unique identifier for grouping
   start: string; // Start date/time string
   end: string; // End date/time string
   label: string; // Text to display on the bar
@@ -380,6 +487,232 @@ interface TimeLineBarData {
   backgroundColor?: string; // Background color (default: "#3b82f6")
   textColor?: string; // Text color (default: "white")
 }
+```
+
+**Note**: When multiple bars share the same `id`, they are automatically grouped into a single row with multiple slots, enabling complex timeline visualizations with overlapping periods.
+
+## API Reference
+
+### Core Components
+
+#### TimeLineChart
+
+The main timeline visualization component with full customization support.
+
+#### TimeLineChartController
+
+Programmatic controller for timeline navigation and interaction:
+
+```tsx
+import { useRef } from "react";
+import { TimeLineChartController } from "@terotests/flex-charts";
+
+const chartRef = useRef<TimeLineChartController>(null);
+
+// Navigation methods
+chartRef.current?.scrollTo(0.5); // Scroll to 50% position
+chartRef.current?.scrollToCenter(); // Center the timeline
+chartRef.current?.getDimensions(); // Get chart dimensions
+
+// Element access
+chartRef.current?.getBarElement("bar-id"); // Get bar DOM element
+chartRef.current?.updateTimeSlotElements(elements); // Update time slots
+```
+
+### Utility Classes
+
+#### TimeInterval
+
+Chainable utility class for time operations:
+
+```tsx
+import { Time, TimeInterval } from "@terotests/flex-charts";
+
+// Creation methods
+const time = Time.parse("2024-01-15");
+const time2 = TimeInterval.fromDate(new Date(), "D");
+const time3 = Time.now("Y");
+
+// Operations
+const diff = time.diffInUnit(time2, "M");
+const position = time.positionInSpan(span);
+const comparison = time.compare(time2); // -1, 0, or 1
+```
+
+#### TimeSpan
+
+Utility class for working with time ranges:
+
+```tsx
+import { TimeSpan, Time } from "@terotests/flex-charts";
+
+const span = Time.span("2024-01-01", "2024-12-31");
+const duration = span.durationInUnit("M"); // 12 months
+const intervals = span.splitInto("Q"); // 4 quarters
+```
+
+### Data Processing
+
+#### Timeline Data Processor
+
+```tsx
+import { processTimelineData, validateTimeSlots } from "@terotests/flex-charts";
+
+// Process and group timeline data
+const rows = processTimelineData(barData, { start: "2024", end: "2025" });
+
+// Validate for overlaps
+const errors = validateTimeSlots(rows[0].slots);
+```
+
+## Example Data Sets
+
+FlexCharts includes several example datasets to help you get started and demonstrate different use cases:
+
+### British Monarchs (Historical Timeline)
+
+A comprehensive dataset of British monarchs from 1558 to present day, organized by royal houses:
+
+```tsx
+import { britishMonarchs } from "@terotests/flex-charts";
+
+<TimeLineChart
+  startDate="1600"
+  endDate="2024"
+  interval="10Y"
+  bars={britishMonarchs}
+  renderTitle={(time) => `${time.value}s`}
+/>;
+```
+
+**Features:**
+
+- Covers major royal houses (Tudor, Stuart, Hanover, Windsor)
+- Color-coded by dynasty
+- Historical accuracy with precise reign dates
+- Demonstrates long-term historical visualization
+
+### Finnish Presidents (Political Timeline)
+
+Dataset of Finnish presidents from 1919 to present day:
+
+```tsx
+import { finnishPresidents } from "@terotests/flex-charts";
+
+<TimeLineChart
+  startDate="1919"
+  endDate="2024"
+  interval="5Y"
+  bars={finnishPresidents}
+  renderTitle={(time) => `${time.value}`}
+/>;
+```
+
+**Features:**
+
+- Complete presidential terms with exact dates
+- Color-coded by political affiliation
+- Demonstrates modern political timeline visualization
+- Precise date formatting for recent history
+
+### SM-Liiga Champions (Sports Timeline)
+
+Finnish ice hockey league championship timeline:
+
+```tsx
+import { smLiigaChampions } from "@terotests/flex-charts";
+
+<TimeLineChart
+  startDate="1976"
+  endDate="2024"
+  interval="Y"
+  bars={smLiigaChampions}
+  renderTitle={(time) => `${time.value}-${time.value + 1}`}
+/>;
+```
+
+**Features:**
+
+- Season-based timeline (1976-77, 1977-78, etc.)
+- Team-specific color coding
+- Demonstrates sports data visualization
+- Annual intervals with custom title rendering
+
+### Custom Programming Languages (Development Timeline)
+
+Simple example dataset for software development timelines:
+
+```tsx
+import { customBars } from "@terotests/flex-charts";
+
+<TimeLineChart
+  startDate="1990"
+  endDate="2010"
+  interval="Y"
+  bars={customBars}
+/>;
+```
+
+**Features:**
+
+- Programming language usage periods
+- Overlapping timelines demonstrating multi-slot rendering
+- Simple date format examples
+- Technology adoption visualization
+
+### Using Example Data
+
+All example datasets are exported from the main package:
+
+```tsx
+import {
+  britishMonarchs,
+  finnishPresidents,
+  smLiigaChampions,
+  customBars,
+  TimeLineChart,
+} from "@terotests/flex-charts";
+
+// Combine datasets for comparison
+const combinedData = [
+  ...britishMonarchs.map((item) => ({ ...item, category: "Monarchs" })),
+  ...finnishPresidents.map((item) => ({ ...item, category: "Presidents" })),
+];
+
+<TimeLineChart
+  startDate="1900"
+  endDate="2024"
+  interval="10Y"
+  bars={combinedData}
+  renderRowPrefix={(row) => <span>{row.category}</span>}
+/>;
+```
+
+### Creating Custom Datasets
+
+Use the example datasets as templates for your own data:
+
+```tsx
+import type { TimeLineBarData } from "@terotests/flex-charts";
+
+const myCustomData: TimeLineBarData[] = [
+  {
+    id: "project-1",
+    start: "2020-01-01",
+    end: "2022-06-30",
+    label: "Project Alpha",
+    backgroundColor: "#3498db",
+    textColor: "white",
+  },
+  {
+    id: "project-2",
+    start: "2021-03-15",
+    end: "2023-12-31",
+    label: "Project Beta",
+    backgroundColor: "#e74c3c",
+    textColor: "white",
+  },
+];
 ```
 
 ## Theming
@@ -484,14 +817,31 @@ FlexCharts components use specific CSS classes that you can target for custom st
 
 ## Time Utilities
 
-Work with time intervals and calculations:
+FlexCharts provides powerful time handling utilities for working with time intervals and calculations:
 
 ```tsx
 import {
+  TimeInterval,
+  TimeSpan,
+  Time,
   calculateTimeSlot,
   parseTimeString,
   getTimeDifferenceInUnit,
 } from "@terotests/flex-charts";
+
+// Fluent API with TimeInterval class
+const start = Time.parse("2024-01-01");
+const end = Time.parse("2024-12-31");
+const span = Time.span("2024-01-01", "2024-12-31");
+
+// Chain operations fluently
+const currentYear = Time.now("Y")
+  .withValue(2024)
+  .withIncrement(Time.parse("03", "MM")); // 2024-03
+
+// Calculate differences
+const diffInMonths = start.diffInUnit(end, "M"); // 12 months
+const position = start.positionInSpan(span); // 0 (start of span)
 
 // Parse different time formats
 const date1 = parseTimeString("2025-01-15");
@@ -504,12 +854,57 @@ const position = calculateTimeSlot(
   parseTimeString("2022-06")
 ); // Returns ~0.5 (middle of range)
 
-// Get time differences
-const monthsDiff = getTimeDifferenceInUnit(
-  parseTimeString("2020"),
-  parseTimeString("2024"),
-  "M"
-); // Returns 48 months
+// Convert to different formats
+const dateObj = start.toDate("D");
+const seconds = start.toSeconds();
+const jsonData = start.toJSON(); // Export as TTimeInterval
+```
+
+### TimeInterval Class Features
+
+The `TimeInterval` class provides a chainable fluent API for time operations:
+
+```tsx
+// Create TimeInterval instances
+const time1 = Time.parse("2024-01-15");
+const time2 = Time.fromDate(new Date(), "D");
+const time3 = Time.now("Y");
+
+// Chain operations
+const modifiedTime = time1
+  .withValue(2025)
+  .withType("M")
+  .withIncrement(Time.parse("03"));
+
+// Comparisons
+const isAfter = time1.isAfter(time2);
+const isBefore = time1.isBefore(time2);
+const isEqual = time1.equals(time2);
+
+// Range checking
+const isInRange = time1.isInRange({ start: time2, end: time3 });
+
+// String conversion with automatic formatting
+const timeString = time1.toString(); // "2024-01-15"
+```
+
+### TimeSpan Utilities
+
+Work with time spans and ranges:
+
+```tsx
+// Create spans
+const span = Time.span("2024-01-01", "2024-12-31");
+const span2 = TimeSpan.from("2020", "2025");
+
+// Span operations
+const duration = span.durationInUnit("M"); // 12 months
+const position = span.positionOf(Time.parse("2024-06-15")); // ~0.5
+const contains = span.contains(Time.parse("2024-03-01")); // true
+
+// Split spans into intervals
+const quarters = span.splitInto("Q"); // Array of 4 quarters
+const months = span.splitInto("M"); // Array of 12 months
 ```
 
 ### Supported Time Intervals
@@ -556,13 +951,21 @@ For long-term timeline visualization, FlexCharts supports decade notation:
 
 ## Development Status
 
-| Feature        | Status                  |
-| -------------- | ----------------------- |
-| TimeLineChart  | ✅ Complete             |
-| Time utilities | ✅ Complete             |
-| Theming        | 🚧 Basic Implementation |
-| Documentation  | ✅ Complete             |
-| Unit tests     | 🧪 In Progress          |
+| Feature                 | Status      | Description                                          |
+| ----------------------- | ----------- | ---------------------------------------------------- |
+| TimeLineChart           | ✅ Complete | Full timeline visualization with all features        |
+| Multi-slot Rendering    | ✅ Complete | Automatic grouping and overlap handling              |
+| TimeInterval Class      | ✅ Complete | Chainable fluent API for time operations             |
+| Time Utilities          | ✅ Complete | Comprehensive time parsing and calculation functions |
+| Timeline Data Processor | ✅ Complete | Data grouping, validation, and processing utilities  |
+| Chart Controller        | ✅ Complete | Programmatic chart control and navigation            |
+| Custom Rendering        | ✅ Complete | Flexible row prefix, suffix, and content rendering   |
+| Event Handling          | ✅ Complete | Bar clicks, row clicks, and hover events             |
+| Theming System          | ✅ Complete | CSS custom properties for complete visual control    |
+| TypeScript Support      | ✅ Complete | Full type definitions and IntelliSense support       |
+| Documentation           | ✅ Complete | Comprehensive README and code examples               |
+| Unit Tests              | ✅ Complete | Extensive test coverage for all utilities            |
+| E2E Tests               | ✅ Complete | Playwright tests for timeline chart functionality    |
 
 ## Contributing
 
