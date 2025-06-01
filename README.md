@@ -6,37 +6,6 @@
 
 A flexible chart library for React applications focused on time-based visualizations with advanced customization capabilities.
 
-## Features
-
-### Core Functionality
-
-- 📐 **Flexible Layout System** - Adaptive wireframe structure with proper data positioning
-- 🔄 **Smooth Scrolling** - Horizontal and vertical scrolling with touch support
-- 📏 **Configurable Time Intervals** - Support for years, months, quarters, weeks, days, hours, minutes, seconds, and decade intervals
-- 📊 **Timeline Charts** - Interactive timeline visualizations for project management and data analysis
-- 🧩 **Multi-Slot Rendering** - Automatic handling of overlapping time periods with intelligent grouping
-
-### Advanced Time Handling
-
-- ⏰ **TimeInterval Class** - Chainable fluent API for time operations and calculations
-- 📅 **Flexible Time Parsing** - Support for multiple date formats and custom parser kernels
-- 🔢 **Time Calculations** - Built-in functions for time differences, positioning, and conversions
-- 📈 **Timeline Data Processing** - Automatic grouping and slot management for complex timeline data
-
-### Interactive Features
-
-- 🎯 **Event Handling** - Comprehensive bar clicks, row clicks, and hover events with detailed context
-- 🎛️ **Programmatic Control** - Chart controller for scrolling, centering, and navigation
-- ✏️ **Custom Rendering** - Flexible row prefix, suffix, and bar content customization
-- 📱 **Responsive Design** - Adapt to different screen sizes and orientations with zoom support
-
-### User Experience
-
-- 🎨 **Theming & Customization** - CSS custom properties for complete visual control
-- 🚀 **Performance Optimization** - Virtualization for large datasets and view optimization
-- 🎯 **Full TypeScript Support** - Complete type definitions for enhanced developer experience
-- 📤 **Data Export Utilities** - Timeline data processing and conversion utilities
-
 ## Installation
 
 ```bash
