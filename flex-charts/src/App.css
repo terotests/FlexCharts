@@ -97,11 +97,15 @@ pre {
   border-radius: 4px;
 }
 
-.monarchs-centuries .bar {
-  /* Add a nice gradient background  with english flag colors */
-  background: linear-gradient(135deg, #ffffff22 0%, #ff000033 50%);
 
-  border: #913d5d 1.5px solid;
-  
+.timeline-row-container.houses {
+  background: white !important;
+}
 
+.timeline-row-container.houses .bar {
+  background: linear-gradient( #ffffffff 0%,   #ffffffff 90%, var(--slot-color) 100%) !important;
+  border: 0px solid var(--slot-color) !important;
+  color: black !important;
+  border-radius: 0px !important;
+  margin-bottom: 20px;
 }

@@ -6,8 +6,9 @@
   --bar-hover-bg: #e3e8f0;
   --bar-hover-border: #4e79a7;
   --bar-hover-shadow: 0 4px 16px 0 rgba(40, 60, 90, 0.13);
-  --slot-bg: #e3e8f0;
-  --slot-text: #4e79a7;  --slot-border: #b0b8c9;
+  --slot-bg: #ffffff;
+  --slot-text: #4e79a7;  
+  --slot-border: #ffffff;
     /* Grid line variables */
   --grid-line-color: rgba(176, 184, 201, 0.3);
   --grid-line-width: 1px;
@@ -36,7 +37,7 @@
   display: flex;
   flex-direction: row;
   gap: 0.3rem;
-  justify-content: space-evenly;
+  justify-content: space-around;
   margin-top: 12px;
 }
 
@@ -80,9 +81,9 @@
   white-space: nowrap;
   flex-wrap: nowrap;
   background-color: var(--slot-bg);
-  width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: 5px;
+  padding: 5px;
   color: var(--slot-text);
   border: 1px solid var(--slot-border);
   font-weight: 500;
@@ -102,10 +103,6 @@
   opacity: var(--timeslots-transformed-opacity);
 }
 
-.time-slots-transformed .time-slot {
-  opacity: var(--timeslots-transformed-opacity);
-  backdrop-filter: blur(3px);
-}
 
 /* Grid lines styling */
 .time-grid {
@@ -118,6 +115,7 @@
   flex-direction: row;
   z-index: 0;
 }
+
 
 .time-grid-line {
   flex: 1;
