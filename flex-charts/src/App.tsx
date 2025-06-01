@@ -20,9 +20,51 @@ import {
   finnishPresidentsMetadata,
 } from "./lib/data/finnishPresidents";
 import {
+  smLiigaChampions,
+  smLiigaChampionsMetadata,
+} from "./lib/data/smLiigaChampions";
+import {
+  getTimeDifferenceInUnit,
+  parseTimeString,
   type TTimeInterval,
   type TTimeIntervalTypeWithDecades,
 } from "./lib/time";
+
+// Helper function to get technology icons
+const getTechIcon = (label: string): string => {
+  const techIcons: Record<string, string> = {
+    // Programming Languages
+    "Turbo C": "🔧",
+    Pascal: "📐",
+    "x86 Asm (TASM)": "⚡",
+    Perl: "🐪",
+    "Watcom C": "🔧",
+    "Visual Studio": "🏢",
+    "Pascal To C": "🔄",
+    PHP: "🐘",
+    JavaScript: "🟨",
+    TypeScript: "🔷",
+
+    // Databases & Servers
+    "Apache HTTP Server": "🪶",
+    MySQL: "🐬",
+    Nginx: "🌐",
+
+    // Frameworks & Libraries
+    React: "⚛️",
+    GraphQL: "🔗",
+  };
+
+  // Find matching technology (case insensitive partial match)
+  for (const [tech, icon] of Object.entries(techIcons)) {
+    if (label.toLowerCase().includes(tech.toLowerCase())) {
+      return icon;
+    }
+  }
+
+  // Default icon for unknown technologies
+  return "💻";
+};
 
 // Dataset options for the dropdown
 const datasetOptions = [
@@ -64,6 +106,15 @@ const datasetOptions = [
     renderTitle: (time: TTimeInterval) => `${time.value}s`,
   },
   {
+    id: "sm-liiga",
+    name: "SM-Liiga Champions (1976-2024)",
+    data: smLiigaChampions,
+    startDate: smLiigaChampionsMetadata.startDate,
+    endDate: smLiigaChampionsMetadata.endDate,
+    interval: smLiigaChampionsMetadata.interval,
+    renderTitle: (time: TTimeInterval) => `${time.value}`,
+  },
+  {
     id: "monarchs-centuries",
     name: "British Monarchs by Half-Centuries",
     data: britishMonarchs,
@@ -92,15 +143,9 @@ const intervalOptions: {
 function App() {
   const { theme, toggleTheme } = useChartTheme();
   const chartRef = useRef<TimeLineChartController>(null);
-  const [showScrollButtons, setShowScrollButtons] = useState(false);
   const [selectedDataset, setSelectedDataset] = useState(datasetOptions[0]);
   const [customInterval, setCustomInterval] =
     useState<TTimeIntervalTypeWithDecades>(datasetOptions[0].interval);
-  const [dimensions, setDimensions] = useState<{
-    visible: { width: number; height: number } | null;
-    total: { width: number; height: number } | null;
-  } | null>(null);
-  const [_, setCurrentScrollPosition] = useState(0);
   const [hoverInfo, setHoverInfo] = useState<ChartHoverData | null>(null);
 
   // Custom bar data for the first TimeLineChart with colors
@@ -115,39 +160,7 @@ function App() {
 
     return () => clearTimeout(timer);
   }, []); // Bind to chart ref
-  useEffect(() => {
-    if (chartRef.current) {
-      // Example of subscribing to dimension changes
-      const unsubscribeDimensions = chartRef.current.onDimensionChange(
-        (newDimensions) => {
-          console.log("Dimensions changed:", newDimensions);
-          setDimensions(newDimensions);
 
-          // Show scroll buttons if total width is larger than visible width
-          const shouldShowButtons =
-            newDimensions.visible &&
-            newDimensions.total &&
-            newDimensions.total.width > newDimensions.visible.width;
-
-          setShowScrollButtons(!!shouldShowButtons);
-        }
-      );
-
-      // Subscribe to scroll position changes
-      const unsubscribeScroll = chartRef.current.onScrollPositionChange(
-        (position) => {
-          setCurrentScrollPosition(position);
-        }
-      );
-
-      // Cleanup subscriptions on unmount
-      return () => {
-        unsubscribeDimensions();
-        unsubscribeScroll();
-        console.log("Chart subscriptions cleaned up");
-      };
-    }
-  }, []);
   const handleShowChartInfo = () => {
     if (chartRef.current) {
       const info = chartRef.current.getChartInfo();
@@ -171,22 +184,6 @@ ${dimensionsText}`);
     }
   };
 
-  const handleScrollToStart = () => {
-    if (chartRef.current) {
-      chartRef.current.scrollToStart();
-    }
-  };
-
-  const handleScrollToEnd = () => {
-    if (chartRef.current) {
-      chartRef.current.scrollToEnd();
-    }
-  };
-  const handleScrollToCenter = () => {
-    if (chartRef.current) {
-      chartRef.current.scrollToCenter();
-    }
-  };
   const handleBarClick = (clickData: BarClickData) => {
     const { bar, relativePosition, dimensions, controller } = clickData;
 
@@ -282,62 +279,54 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
       }}
     >
       {" "}
-      <header>
-        <h1>FlexCharts Demo</h1>
-        {showScrollButtons && dimensions && (
-          <div
-            className="scroll-controls"
-            style={{
-              marginTop: "10px",
-              display: "flex",
-              gap: "10px",
-              alignItems: "center",
-            }}
-          >
-            <button
-              onClick={handleScrollToStart}
-              style={{
-                padding: "8px 12px",
-                fontSize: "12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              ← Start
-            </button>
-            <button
-              onClick={handleScrollToCenter}
-              style={{
-                padding: "8px 12px",
-                fontSize: "12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              ↔ Center
-            </button>
-            <button
-              onClick={handleScrollToEnd}
-              style={{
-                padding: "8px 12px",
-                fontSize: "12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              End →
-            </button>
-          </div>
-        )}{" "}
-      </header>
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "15px",
+          flexWrap: "wrap",
+        }}
+      >
+        <h1 style={{ fontSize: "16px", margin: "10px 0" }}>FlexCharts Demo</h1>
+        <a
+          href="https://github.com/terotests/FlexCharts"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "6px 12px",
+            fontSize: "12px",
+            textDecoration: "none",
+            backgroundColor: theme.mode === "light" ? "#24292e" : "#f6f8fa",
+            color: theme.mode === "light" ? "white" : "#24292e",
+            borderRadius: "6px",
+            border: `1px solid ${
+              theme.mode === "light" ? "#24292e" : "#d0d7de"
+            }`,
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-1px)";
+            e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+          </svg>
+          GitHub Repo
+        </a>
+      </header>{" "}
       {/* Dataset Selector */}
       <div
         className="dataset-selector"
         style={{
-          padding: "20px 0",
+          padding: "20px 30px",
           borderBottom: "1px solid #eaeaea",
           marginBottom: "20px",
         }}
@@ -498,6 +487,44 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
               )}
             </div>
           )}
+          {/* Show color legend for SM-Liiga Champions */}
+          {selectedDataset.id === "sm-liiga" && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginLeft: "12px",
+                fontSize: "12px",
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ fontWeight: "bold" }}>Teams:</span>
+              {Object.entries(smLiigaChampionsMetadata.colorLegend).map(
+                ([color, team]) => (
+                  <div
+                    key={color}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        backgroundColor: color,
+                        borderRadius: "2px",
+                        border: "1px solid #ccc",
+                      }}
+                    />
+                    <span style={{ fontSize: "11px" }}>{team}</span>
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
       </div>
       <main>
@@ -559,13 +586,24 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
               >
                 {(() => {
                   // Calculate duration in years
-                  const startYear = parseInt(
-                    context.bar.start.toString().slice(0, 4)
+
+                  let duration = getTimeDifferenceInUnit(
+                    parseTimeString(context.bar.start),
+                    parseTimeString(context.bar.end),
+                    "Y"
                   );
-                  const endYear = parseInt(
-                    context.bar.end.toString().slice(0, 4)
-                  );
-                  const duration = endYear - startYear + 1;
+
+                  if (context.slots) {
+                    duration = 0;
+                    context.slots.forEach((slot) => {
+                      duration += getTimeDifferenceInUnit(
+                        parseTimeString(slot.start),
+                        parseTimeString(slot.end),
+                        "Y"
+                      );
+                    });
+                  }
+
                   return `${duration}yr${duration !== 1 ? "s" : ""}`;
                 })()}
               </div>
@@ -575,14 +613,36 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
+                  justifyContent: "flex-start",
                   width: "100%",
                   padding: "0 8px",
                   fontSize: "11px",
                   fontWeight: "500",
+                  gap: "6px",
                 }}
               >
-                <span style={{ flexShrink: 0 }}>{context.bar.label}</span>
+                {/* Show tech icon only for Custom Projects dataset */}
+                {selectedDataset.id === "custom" && (
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      flexShrink: 0,
+                      filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))",
+                    }}
+                  >
+                    {getTechIcon(context.bar.label)}
+                  </span>
+                )}
+                <span
+                  style={{
+                    flexShrink: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {context.bar.label}
+                </span>
               </div>
             )}
           />

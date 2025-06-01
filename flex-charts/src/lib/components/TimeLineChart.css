@@ -52,8 +52,6 @@
   flex-wrap: nowrap;
   transition: box-shadow 0.2s, background 0.2s, color 0.2s, border 0.2s;
   letter-spacing: 0.01em;
-  /*padding: 0 18px;*/
-  min-width: 50px;
   height: 28px;
   border-radius: 14px;
   display: flex;
@@ -210,10 +208,43 @@
 }
 
 .timeline-bar-container:hover {
-
   background:rgba(40, 60, 90, 0.18);
 }
 
+/* Timeline row container for multi-slot rendering */
+.timeline-row-container {
+    display: flex;
+    align-items: center;
+    background: linear-gradient( to bottom, transparent, var(--horizontal-grid-line-color) );
+    position: relative;
+    width: 100%;
+    margin-bottom: 6px; /* Space between rows */
+}
+
+.timeline-row-container:hover {
+    background: rgba(40, 60, 90, 0.18);
+}
+
+/* Timeline row prefix styling */
+.timeline-row-prefix {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Timeline row suffix styling */
+.timeline-row-suffix {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 100%;
+    white-space: nowrap;
+    flex-shrink: 0;
+    z-index: 1;
+    pointer-events: none;
+}
 
 .bar {
   margin-top: 4px;
