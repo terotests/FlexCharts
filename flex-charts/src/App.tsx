@@ -579,8 +579,6 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
                   alignItems: "center",
                   height: "calc( 100% )",
                   padding: "0 10px 0px 10px",
-                  backgroundColor:
-                    theme.mode === "light" ? "#f0f0f0" : "#404040",
                   borderRadius: "3px",
                   whiteSpace: "nowrap",
                 }}
