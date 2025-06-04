@@ -564,7 +564,9 @@ Screen Position: ${dimensions.left.toFixed(0)}, ${dimensions.top.toFixed(0)}
                 }}
                 title={`Bar ${context.bar.id} - Duration: ${context.bar.start} to ${context.bar.end}`}
               >
-                {context.bar.id === "houses"
+                {context.bar.id === "historic-event"
+                  ? ""
+                  : context.bar.id === "houses"
                   ? "Royal House"
                   : context.bar.label}
               </div>

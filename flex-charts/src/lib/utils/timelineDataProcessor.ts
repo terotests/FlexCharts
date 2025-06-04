@@ -16,6 +16,7 @@ export interface TimeSlot {
   color?: string;
   backgroundColor?: string;
   textColor?: string;
+  className?: string;
   relativeStart: number; // 0-1 position within the row
   relativeEnd: number; // 0-1 position within the row
   relativeWidth: number; // Width as percentage of row
@@ -27,6 +28,7 @@ export interface TimeSlot {
 export interface TimelineRow {
   rowId: string | number;
   label: string;
+  className?: string;
   slots: TimeSlot[];
   fullTimeRange: {
     start: string;
@@ -104,7 +106,6 @@ export function processTimelineData(
         },
         parseTimeString(bar.end)
       );
-
       return {
         id: bar.id ?? `${groupId}-slot-${index}`,
         start: bar.start,
@@ -113,6 +114,7 @@ export function processTimelineData(
         color: bar.color,
         backgroundColor: bar.backgroundColor,
         textColor: bar.textColor,
+        className: bar.className,
         relativeStart,
         relativeEnd,
         relativeWidth: relativeEnd - relativeStart,
@@ -122,10 +124,10 @@ export function processTimelineData(
     // Use the first bar's label as row label, or create a generic one
     const rowLabel =
       sortedBars.length === 1 ? sortedBars[0].label : `${sortedBars[0].label}`;
-
     rows.push({
       rowId: groupId,
       label: rowLabel,
+      className: sortedBars[0].className, // Use className from first bar in group
       slots,
       fullTimeRange: {
         start: rowStartStr,
@@ -208,6 +210,7 @@ export function flattenTimelineRows(rows: TimelineRow[]): TimeLineBarData[] {
         color: slot.color,
         backgroundColor: slot.backgroundColor,
         textColor: slot.textColor,
+        className: slot.className,
       });
     });
   });
