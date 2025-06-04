@@ -216,7 +216,6 @@
     background: linear-gradient( to bottom, transparent, var(--horizontal-grid-line-color) );
     position: relative;
     width: 100%;
-    margin-bottom: 6px; /* Space between rows */
 }
 
 .timeline-row-container:hover {
@@ -248,3 +247,4 @@
   margin-top: 4px;
   margin-bottom: 4px;
 }
+

@@ -111,6 +111,7 @@ export interface TimeLineBarData {
   color?: string;
   backgroundColor?: string;
   textColor?: string;
+  className?: string;
 }
 
 // Custom render context data passed to render functions
@@ -261,14 +262,15 @@ const TimeLineRowComponent = (props: {
       event,
     });
   };
-
   return (
     <div
       style={{
         width: "100%",
         position: "relative",
       }}
-      className={"timeline-row-container " + row.rowId}
+      className={`timeline-row-container ${row.rowId}${
+        row.className ? ` ${row.className}` : ""
+      }`}
       onClick={handleRowClick}
     >
       {/* Row prefix */}
@@ -353,7 +355,6 @@ const TimeLineRowComponent = (props: {
               textColor: slot.textColor,
             },
           };
-
           return (
             <div
               key={`${slot.id}-${slotIndex}`}
@@ -420,6 +421,7 @@ const TimeLineBar = (props: {
   color?: string;
   backgroundColor?: string;
   textColor?: string;
+  className?: string;
   range: {
     start: string;
     end: string;
@@ -443,6 +445,7 @@ const TimeLineBar = (props: {
     color,
     backgroundColor,
     textColor,
+    className,
     onBarElementRef,
     onBarClick,
     onRowClick,
@@ -640,7 +643,9 @@ const TimeLineBar = (props: {
         width: "100%",
         position: "relative",
       }}
-      className="timeline-bar-container"
+      className={["timeline-bar-container", className]
+        .filter(Boolean)
+        .join(" ")}
       onClick={handleRowClick}
     >
       {/* Row prefix - positioned absolutely to not affect timeline alignment */}
@@ -653,7 +658,7 @@ const TimeLineBar = (props: {
       <div style={{ width: "100%", position: "relative" }}>
         {" "}
         <div
-          className="bar"
+          className={`bar`}
           ref={(element) => {
             barRef.current = element;
             if (onBarElementRef && id !== undefined) {
@@ -1051,7 +1056,7 @@ export const TimeLineChart = forwardRef<
               />
             ))}
           </div>{" "}
-          <div className="time-bars">
+          <div>
             {useMultiSlotRendering // Multi-slot rendering for rows with multiple slots
               ? timelineRows.map((row) => (
                   <TimeLineRowComponent
@@ -1079,6 +1084,7 @@ export const TimeLineChart = forwardRef<
                     color={bar.color}
                     backgroundColor={bar.backgroundColor}
                     textColor={bar.textColor}
+                    className={bar.className}
                     range={{ start: props.startDate, end: props.endDate }}
                     onBarElementRef={handleBarElementRef}
                     onBarClick={onBarClick}

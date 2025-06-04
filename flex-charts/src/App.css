@@ -109,3 +109,27 @@ pre {
   border-radius: 0px !important;
   margin-bottom: 20px;
 }
+
+.historic-event {
+  background: white !important;
+  border-left: 2px solid var(--slot-color) !important;
+  border-right: #3d6391 2px solid var(--slot-color) !important;
+  color: black !important;
+  border-radius: 0px !important;
+  margin-bottom: 20px;
+}
+
+.historic-event .bar {
+
+  border: 0px solid var(--slot-color) !important;
+  border-bottom:3px solid var(--slot-color) !important;
+
+  border-radius: 0px !important;
+  background-color: unset !important;
+  background: rgba(255,255,255, 1 )!important;
+  color: black !important;  
+  height: 20px;
+  font-size: 16px;
+
+  box-shadow: unset !important;
+}
