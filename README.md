@@ -455,10 +455,69 @@ interface TimeLineBarData {
   color?: string; // Border color (defaults to backgroundColor)
   backgroundColor?: string; // Background color (default: "#3b82f6")
   textColor?: string; // Text color (default: "white")
+  className?: string; // Custom CSS class for styling
 }
 ```
 
 **Note**: When multiple bars share the same `id`, they are automatically grouped into a single row with multiple slots, enabling complex timeline visualizations with overlapping periods.
+
+### Custom Styling with className
+
+The `className` property allows you to apply custom CSS classes to timeline bars and rows for advanced styling:
+
+```tsx
+const styledData: TimeLineBarData[] = [
+  {
+    id: "project-alpha",
+    start: "2020-01-01",
+    end: "2020-06-30",
+    label: "Phase 1",
+    backgroundColor: "#3b82f6",
+    className: "project-phase priority-high", // Multiple classes
+  },
+  {
+    id: "project-alpha", // Same ID creates multi-slot row
+    start: "2020-07-01",
+    end: "2020-12-31",
+    label: "Phase 2",
+    backgroundColor: "#ef4444",
+    className: "project-phase final-phase",
+  },
+];
+
+// The className is applied to both individual bars and their parent rows
+```
+
+**CSS styling:**
+
+```css
+/* Style individual timeline bars */
+.project-phase {
+  border: 2px solid #1e40af;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.priority-high {
+  animation: pulse 2s infinite;
+}
+
+.final-phase {
+  background: linear-gradient(45deg, #ef4444, #dc2626);
+}
+
+/* Style timeline rows (containers) */
+.timeline-row-container.project-alpha {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left: 4px solid #3b82f6;
+}
+```
+
+**Behavior:**
+
+- In single-slot rendering: `className` is applied directly to the bar element
+- In multi-slot rendering: `className` from the first bar is applied to the row container, and individual slot classes are applied to their respective elements
+- Classes are preserved when data is processed and flattened
+- Multiple space-separated classes are supported
 
 ## API Reference
 
@@ -750,15 +809,17 @@ function App() {
 
 FlexCharts components use specific CSS classes that you can target for custom styling:
 
-| CSS Class                          | Component     | Description                                                |
-| ---------------------------------- | ------------- | ---------------------------------------------------------- |
-| `.bar`                             | TimeLineChart | Individual timeline bars representing data periods         |
-| `.time-slots`                      | TimeLineChart | Container for time slot markers                            |
-| `.time-slot`                       | TimeLineChart | Individual time slot markers (circular indicators)         |
-| `.time-slots-transformed`          | TimeLineChart | Time slots container when transformed/moved for visibility |
-| `.time-grid`                       | TimeLineChart | Grid lines container overlaying the timeline               |
-| `.time-grid-line`                  | TimeLineChart | Individual vertical grid lines                             |
-| `.timeline-chart-scroll-container` | TimeLineChart | Main scrollable container for the timeline                 |
+| CSS Class                          | Component     | Description                                                 |
+| ---------------------------------- | ------------- | ----------------------------------------------------------- |
+| `.bar`                             | TimeLineChart | Individual timeline bars representing data periods          |
+| `.timeline-row-container`          | TimeLineChart | Container for timeline rows in multi-slot rendering         |
+| `.time-slots`                      | TimeLineChart | Container for time slot markers                             |
+| `.time-slot`                       | TimeLineChart | Individual time slot markers (circular indicators)          |
+| `.time-slots-transformed`          | TimeLineChart | Time slots container when transformed/moved for visibility  |
+| `.time-grid`                       | TimeLineChart | Grid lines container overlaying the timeline                |
+| `.time-grid-line`                  | TimeLineChart | Individual vertical grid lines                              |
+| `.timeline-chart-scroll-container` | TimeLineChart | Main scrollable container for the timeline                  |
+| **Custom classes via `className`** | TimeLineChart | **User-defined classes applied to bars and row containers** |
 
 **Example of custom styling:**
 
@@ -781,6 +842,18 @@ FlexCharts components use specific CSS classes that you can target for custom st
 .time-grid-line {
   --grid-line-color: rgba(255, 0, 0, 0.2); /* Red grid lines */
   --grid-line-width: 2px; /* Thicker lines */
+}
+
+/* Style custom classes applied via TimeLineBarData.className */
+.my-custom-bar {
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  border: 2px solid #2c3e50;
+  font-weight: bold;
+}
+
+.timeline-row-container.my-custom-row {
+  background-color: rgba(255, 107, 107, 0.1);
+  border-left: 3px solid #ff6b6b;
 }
 ```
 
